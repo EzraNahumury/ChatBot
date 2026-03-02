@@ -3,7 +3,7 @@ import path from "node:path";
 
 import { NextResponse } from "next/server";
 
-import { DATASET_MD_CONTENT } from "../../lib/knowledge-base";
+import { getKnowledgeContent } from "../../lib/knowledge-store";
 import {
   type AssistantResponse,
   type ChatMessage,
@@ -51,10 +51,14 @@ function buildSystemPrompt({
   message,
   history,
   lead,
+  knowledgeBaseContent,
+  shouldCollectOrderData,
 }: {
   message: string;
   history: ChatMessage[];
   lead: LeadData;
+  knowledgeBaseContent: string;
+  shouldCollectOrderData: boolean;
 }): string {
   return `
 Kamu adalah Lana, AI sales assistant resmi untuk Ayres Parallel, perusahaan custom jersey di Indonesia.
@@ -106,11 +110,19 @@ Urutan prioritas pertanyaan:
 Jika user bertanya harga tetapi qty belum ada tanyakan qty terlebih dahulu.
 Jangan memberikan harga pasti kecuali tertulis jelas di Knowledge Base.
 
+Aturan konteks percakapan:
+- Jika user sedang tanya FAQ/informasi umum (bukan siap order), jawab pertanyaannya dulu tanpa memaksa tanya data order.
+- Jika user sudah jelas ingin mulai order atau minta penawaran, baru lanjut kumpulkan data sesuai prioritas.
+- Untuk FAQ, cukup akhiri dengan ajakan halus seperti "kalau mau lanjut order, nanti saya bantu data berikutnya ya".
+- Untuk mode ini, status pengumpulan data order saat ini: ${
+    shouldCollectOrderData ? "AKTIF" : "NONAKTIF (FAQ dulu)"
+  }.
+
 ========================
 KNOWLEDGE BASE
 ========================
 
-${DATASET_MD_CONTENT}
+${knowledgeBaseContent}
 
 ========================
 DATA LEAD SAAT INI
@@ -294,6 +306,50 @@ function createMediaNote(kinds: MediaKind[]): string {
     : "Saya lampirkan contoh desain yang tersedia di bawah ya.";
 }
 
+function shouldCollectOrderData(message: string): boolean {
+  const text = message.toLowerCase();
+
+  const faqSignals = [
+    "bisa",
+    "apakah",
+    "gimana",
+    "bagaimana",
+    "berapa lama",
+    "minimal",
+    "bahan",
+    "katalog",
+    "contoh",
+    "size",
+    "ukuran",
+    "pengiriman",
+    "ongkir",
+    "resi",
+    "pembayaran",
+  ];
+
+  const orderSignals = [
+    "saya mau order",
+    "mau order",
+    "pesan sekarang",
+    "lanjut order",
+    "buatkan",
+    "jadi order",
+    "deal",
+    "checkout",
+    "langsung produksi",
+    "minta penawaran",
+    "minta quotation",
+  ];
+
+  const hasOrderSignal = orderSignals.some((signal) => text.includes(signal));
+  if (hasOrderSignal) {
+    return true;
+  }
+
+  const hasFaqSignal = faqSignals.some((signal) => text.includes(signal));
+  return !hasFaqSignal;
+}
+
 export async function POST(req: Request) {
   try {
     const body = (await req.json()) as ChatRequestBody;
@@ -333,7 +389,15 @@ export async function POST(req: Request) {
           : null,
     };
 
-    const prompt = buildSystemPrompt({ message, history, lead });
+    const knowledgeBaseContent = await getKnowledgeContent();
+    const collectOrderData = shouldCollectOrderData(message);
+    const prompt = buildSystemPrompt({
+      message,
+      history,
+      lead,
+      knowledgeBaseContent,
+      shouldCollectOrderData: collectOrderData,
+    });
     const host = (
       process.env.OLLAMA_HOST ??
       process.env.OLLAMA_BASE_URL ??
