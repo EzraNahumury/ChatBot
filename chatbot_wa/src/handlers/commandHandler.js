@@ -9,6 +9,54 @@ const GAMBAR_DIR = path.join(__dirname, "../../gambar");
 //       | { handled: true, type: 'image', images: [{path, caption}] }
 //       | { handled: false }
 
+// State: track users who are awaiting katalog category selection
+const katalogState = new Map(); // phone -> 'awaiting_katalog'
+
+const KATALOG_CATEGORIES = [
+  {
+    id: 1,
+    name: "Classic Adi Vira",
+    folder: "katalog classic Adi Vira",
+    keywords: ["adi vira", "adivira", "1"],
+  },
+  {
+    id: 2,
+    name: "Classic Cakra Vega",
+    folder: "katalog classic Cakra Vega",
+    keywords: ["cakra vega", "cakravega", "2"],
+  },
+  {
+    id: 3,
+    name: "Pro Bima Sena",
+    folder: "katalog pro Bima Sena",
+    keywords: ["bima sena", "bimasena", "3"],
+  },
+  {
+    id: 4,
+    name: "Pro Garuda Vastra",
+    folder: "katalog pro Garuda Vastra",
+    keywords: ["garuda vastra", "garudavastra", "4"],
+  },
+];
+
+function getKatalogImages(folder, categoryName) {
+  const folderPath = path.join(GAMBAR_DIR, "katalog", folder);
+  if (!fs.existsSync(folderPath)) return [];
+  const files = fs.readdirSync(folderPath)
+    .filter((f) => /\.(jpg|jpeg|png|webp)$/i.test(f))
+    .sort();
+  return files.map((f, i) => ({
+    path: path.join(folderPath, f),
+    caption: i === 0
+      ? `Ini katalog *${categoryName}* kak! 🔥\n\nKalau ada yang cocok, langsung kabarin kami ya 😊`
+      : "",
+  }));
+}
+
+function clearKatalogState(phone) {
+  katalogState.delete(phone);
+}
+
 function handleCommand(phone, text) {
   const lower = text.trim().toLowerCase();
 
@@ -32,6 +80,7 @@ function handleCommand(phone, text) {
 
   if (lower === "reset" || lower === "/reset") {
     clearHistory(phone);
+    clearKatalogState(phone);
     return { handled: true, reply: "Okey, percakapan kita mulai dari awal ya 🙂" };
   }
 
@@ -43,17 +92,49 @@ function handleCommand(phone, text) {
     };
   }
 
-  // Katalog jersey
-  const katalogKeywords = ["katalog", "catalog", "list jersey", "daftar jersey", "pilihan jersey", "model jersey"];
-  if (katalogKeywords.some((k) => lower.includes(k))) {
-    const katalogPath = path.join(GAMBAR_DIR, "katalog", "katalog_jersey.jpeg");
-    if (fs.existsSync(katalogPath)) {
+  // --- Katalog: step 2 — user sedang memilih kategori ---
+  if (katalogState.get(phone) === "awaiting_katalog") {
+    const matched = KATALOG_CATEGORIES.find((cat) =>
+      cat.keywords.some((kw) => lower.includes(kw))
+    );
+    if (matched) {
+      katalogState.delete(phone);
+      const images = getKatalogImages(matched.folder, matched.name);
+      if (images.length > 0) {
+        return { handled: true, type: "image", images };
+      }
       return {
         handled: true,
-        type: "image",
-        images: [{ path: katalogPath, caption: "Ini katalog jersey kami kak! 🏀\n\nAda banyak pilihan model & tim. Kalau ada yang cocok, langsung kabarin aja ya 😊" }],
+        reply: `Maaf kak, gambar katalog *${matched.name}* belum tersedia. Hubungi admin ya 🙏`,
       };
     }
+    // User input tidak cocok, tanya ulang
+    return {
+      handled: true,
+      reply:
+        "Maaf kak, pilihannya tidak dikenali 😅\n\n" +
+        "Silakan ketik angka atau nama kategori:\n" +
+        "1️⃣ Classic Adi Vira\n" +
+        "2️⃣ Classic Cakra Vega\n" +
+        "3️⃣ Pro Bima Sena\n" +
+        "4️⃣ Pro Garuda Vastra",
+    };
+  }
+
+  // --- Katalog: step 1 — user minta katalog ---
+  const katalogKeywords = ["katalog", "catalog", "list jersey", "daftar jersey", "pilihan jersey", "model jersey"];
+  if (katalogKeywords.some((k) => lower.includes(k))) {
+    katalogState.set(phone, "awaiting_katalog");
+    return {
+      handled: true,
+      reply:
+        "Hai kak! Kami punya 4 pilihan katalog jersey 🏀\n\n" +
+        "1️⃣ Classic Adi Vira\n" +
+        "2️⃣ Classic Cakra Vega\n" +
+        "3️⃣ Pro Bima Sena\n" +
+        "4️⃣ Pro Garuda Vastra\n\n" +
+        "Ketik angka atau nama katalog yang ingin kamu lihat ya kak 😊",
+    };
   }
 
   // Contoh desain / hasil design
@@ -92,4 +173,4 @@ function handleCommand(phone, text) {
   return { handled: false };
 }
 
-module.exports = { handleCommand };
+module.exports = { handleCommand, clearKatalogState };
