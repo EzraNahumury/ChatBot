@@ -12,7 +12,7 @@ const fs = require("fs");
 const pino = require("pino");
 const { routeMessage } = require("./router");
 const { logger } = require("../utils/logger");
-const { setStatus } = require("./healthcheck");
+const { setStatus, setQR } = require("./healthcheck");
 
 const SESSION_DIR = path.join(
   process.env.SESSION_DIR || __dirname + "/../../auth"
@@ -21,6 +21,24 @@ const SESSION_DIR = path.join(
 let reconnectAttempts = 0;
 const MAX_RECONNECT = 10;
 const RECONNECT_DELAY = 5000; // 5 seconds
+let currentSock = null;
+
+async function logoutBot() {
+  logger.info("Logout requested via web panel");
+  if (currentSock) {
+    try {
+      await currentSock.logout();
+    } catch (_) { /* ignore */ }
+  }
+  if (fs.existsSync(SESSION_DIR)) {
+    fs.rmSync(SESSION_DIR, { recursive: true, force: true });
+    logger.info("Session cleared by logout");
+  }
+  setStatus("logged_out");
+  setQR(null);
+  reconnectAttempts = 0;
+  setTimeout(() => startConnection(), 2000);
+}
 
 async function startConnection() {
   const { state, saveCreds } = await useMultiFileAuthState(SESSION_DIR);
@@ -28,6 +46,7 @@ async function startConnection() {
 
   logger.info({ version: version.join(".") }, "Using Baileys version");
 
+  currentSock = null;
   const sock = makeWASocket({
     version,
     logger: pino({ level: "silent" }), // silence Baileys internal logs
@@ -47,13 +66,16 @@ async function startConnection() {
 
     if (qr) {
       setStatus("waiting_qr");
+      setQR(qr);
       logger.info("QR Code generated — scan with WhatsApp:");
       qrcode.generate(qr, { small: true });
     }
 
     if (connection === "open") {
+      currentSock = sock;
       reconnectAttempts = 0;
       setStatus("connected", { connectedAt: new Date().toISOString(), reconnectAttempts: 0 });
+      setQR(null);
       logger.info("✅ WhatsApp connected successfully!");
     }
 
@@ -116,4 +138,4 @@ async function startConnection() {
   return sock;
 }
 
-module.exports = { startConnection };
+module.exports = { startConnection, logoutBot };

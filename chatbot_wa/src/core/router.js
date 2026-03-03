@@ -2,6 +2,7 @@ const { handleCommand } = require("../handlers/commandHandler");
 const { handleAI } = require("../handlers/aiHandler");
 const { isRateLimited, randomDelay } = require("../utils/throttle");
 const { logger, maskPhone } = require("../utils/logger");
+const fs = require("fs");
 
 // Route incoming message to appropriate handler
 async function routeMessage(sock, msg) {
@@ -47,7 +48,11 @@ async function routeMessage(sock, msg) {
     const commandResult = handleCommand(phone, text);
     if (commandResult.handled) {
       logger.info({ phone: maskPhone(phone) }, `Command handled: "${text.slice(0, 30)}"`);
-      await sendMessage(sock, jid, commandResult.reply);
+      if (commandResult.type === "image") {
+        await sendImages(sock, jid, commandResult.images);
+      } else {
+        await sendMessage(sock, jid, commandResult.reply);
+      }
       return;
     }
 
@@ -64,6 +69,22 @@ async function sendMessage(sock, jid, text) {
     await sock.sendMessage(jid, { text });
   } catch (err) {
     logger.error({ jid, err: err.message }, "Failed to send message");
+  }
+}
+
+async function sendImages(sock, jid, images) {
+  for (const img of images) {
+    try {
+      const buffer = fs.readFileSync(img.path);
+      await sock.sendMessage(jid, {
+        image: buffer,
+        caption: img.caption || "",
+      });
+      // Small delay between multiple images (anti-spam)
+      if (images.length > 1) await new Promise((r) => setTimeout(r, 800));
+    } catch (err) {
+      logger.error({ jid, path: img.path, err: err.message }, "Failed to send image");
+    }
   }
 }
 
