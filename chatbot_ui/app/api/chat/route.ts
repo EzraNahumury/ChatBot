@@ -27,6 +27,7 @@ const FALLBACK_RESPONSE: AssistantResponse = {
 };
 
 const IMAGE_ROOT_DIR = path.join(process.cwd(), "gambar");
+const MIN_ORDER_QTY = 6;
 const MEDIA_FOLDER_MAP: Record<MediaKind, string> = {
   design: "hasil_design",
   catalog: "katalog",
@@ -83,6 +84,8 @@ Panduan gaya bahasa:
 - Pakai kalimat ringkas dan hangat, boleh pakai kata seperti "boleh", "siap", "ya".
 - Hindari kalimat baku yang kaku dan hindari paragraf panjang.
 - Tetap sopan, jelas, dan fokus ke langkah berikutnya.
+- Saat user baru menyapa (misalnya "hai", "halo"), jangan langsung ke pertanyaan inti.
+  Mulai dengan basa-basi singkat 1 kalimat dulu (sapaan hangat), lalu lanjut ke pertanyaan berikutnya.
 
 ========================
 DATA PESANAN WAJIB
@@ -109,6 +112,11 @@ Urutan prioritas pertanyaan:
 
 Jika user bertanya harga tetapi qty belum ada tanyakan qty terlebih dahulu.
 Jangan memberikan harga pasti kecuali tertulis jelas di Knowledge Base.
+Minimal order wajib 6 pcs per desain. Jika qty < 6:
+- Jangan anggap data order lengkap.
+- all_data_complete wajib false.
+- Jangan buat ringkasan final order atau seolah order sudah diproses.
+- Tawarkan untuk tambah qty menjadi minimal 6 pcs atau lebih.
 
 Aturan konteks percakapan:
 - Jika user sedang tanya FAQ/informasi umum (bukan siap order), jawab pertanyaannya dulu tanpa memaksa tanya data order.
@@ -201,6 +209,72 @@ function asNumberOrNull(value: unknown): number | null {
     return null;
   }
   return value;
+}
+
+function mergeLead(previous: LeadData, extracted: LeadData): LeadData {
+  return {
+    sport: extracted.sport ?? previous.sport,
+    qty: extracted.qty ?? previous.qty,
+    deadline: extracted.deadline ?? previous.deadline,
+    city: extracted.city ?? previous.city,
+    design_status: extracted.design_status ?? previous.design_status,
+    name_number: extracted.name_number ?? previous.name_number,
+  };
+}
+
+function looksLikeOrderClosingMessage(reply: string): boolean {
+  const closingSignals = [
+    "jadi order",
+    "ordernya",
+    "ringkasan pesanan",
+    "admin akan hubungi",
+    "kami akan kirim",
+    "siap diproses",
+    "lanjut ke produksi",
+  ];
+
+  const text = reply.toLowerCase();
+  return closingSignals.some((signal) => text.includes(signal));
+}
+
+function enforceMinimumOrderRule(parsed: AssistantResponse, lead: LeadData): AssistantResponse {
+  const mergedLead = mergeLead(lead, parsed.extracted);
+
+  if (mergedLead.qty === null || mergedLead.qty >= MIN_ORDER_QTY) {
+    return parsed;
+  }
+
+  const corrected: AssistantResponse = {
+    ...parsed,
+    all_data_complete: false,
+  };
+
+  if (looksLikeOrderClosingMessage(parsed.reply)) {
+    corrected.reply = `Untuk lanjut order, minimal ${MIN_ORDER_QTY} pcs per desain ya, kak. Saat ini qty ${mergedLead.qty} belum memenuhi minimal. Kalau mau, bisa ditambah jadi ${MIN_ORDER_QTY} pcs atau lebih.`;
+  }
+
+  return corrected;
+}
+
+function isGreetingOnlyMessage(message: string): boolean {
+  const text = message.trim().toLowerCase();
+  if (!text || text.length > 40) {
+    return false;
+  }
+
+  return /^(hai|hi|halo|hallo|hello|pagi|siang|sore|malam|permisi|assalamualaikum|assalamu'alaikum|test)(\s+(kak|admin|min|sis|bro))?[!. ]*$/.test(
+    text,
+  );
+}
+
+function buildWarmGreetingReply(lead: LeadData): string {
+  if (lead.sport === null) {
+    return "Hai kak, makasih sudah hubungi Ayres Parallel ya. Senang bisa bantu. Jersey-nya mau dipakai untuk olahraga apa?";
+  }
+  if (lead.qty === null) {
+    return `Siap kak, makasih sudah share infonya. Untuk olahraga ${lead.sport}, boleh info jumlah kebutuhannya berapa pcs?`;
+  }
+  return "Siap kak, makasih ya sudah chat. Boleh lanjut ceritakan detail kebutuhan jersey-nya, nanti saya bantu sampai beres.";
 }
 
 function normalizeResponse(value: unknown): AssistantResponse | null {
@@ -473,6 +547,14 @@ export async function POST(req: Request) {
 
     if (!parsed) {
       return NextResponse.json(FALLBACK_RESPONSE, { status: 502 });
+    }
+
+    parsed = enforceMinimumOrderRule(parsed, lead);
+
+    if (isGreetingOnlyMessage(message)) {
+      const mergedLead = mergeLead(lead, parsed.extracted);
+      parsed.reply = buildWarmGreetingReply(mergedLead);
+      parsed.all_data_complete = false;
     }
 
     const mediaKinds = detectMediaRequestKinds(message);

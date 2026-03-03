@@ -24,9 +24,11 @@ type AdminSimpleResponse = {
 const INITIAL_MESSAGES: ChatMessage[] = [
   {
     role: "assistant",
-    content: "Halo, saya Lana. Boleh info dulu jersey ini untuk olahraga apa?",
+    content:
+      "Halo kak, saya Lana dari Ayres Parallel. Makasih sudah chat ya. Boleh info jersey ini untuk olahraga apa?",
   },
 ];
+const MIN_ORDER_QTY = 6;
 
 function mergeLead(previous: LeadData, extracted: LeadData): LeadData {
   return {
@@ -43,6 +45,7 @@ function isLeadComplete(lead: LeadData): boolean {
   return (
     lead.sport !== null &&
     lead.qty !== null &&
+    lead.qty >= MIN_ORDER_QTY &&
     lead.deadline !== null &&
     lead.city !== null &&
     lead.design_status !== null &&
