@@ -137,6 +137,30 @@ function handleCommand(phone, text) {
     };
   }
 
+  // Size chart
+  const sizeKeywords = ["size chart", "sizechart", "ukuran baju", "ukuran jersey", "tabel ukuran", "size baju", "size jersey", "ukuran size", "chart size"];
+  if (sizeKeywords.some((k) => lower.includes(k))) {
+    const sizeDir = path.join(GAMBAR_DIR, "Size Chart");
+    if (fs.existsSync(sizeDir)) {
+      const files = fs.readdirSync(sizeDir)
+        .filter((f) => /\.(jpg|jpeg|png|webp)$/i.test(f))
+        .sort();
+      if (files.length > 0) {
+        const images = files.map((f, i) => ({
+          path: path.join(sizeDir, f),
+          caption: i === 0
+            ? "Ini size chart jersey kami kak! 📏\n\nKalau masih bingung pilih ukuran, jangan ragu tanya ya 😊"
+            : "",
+        }));
+        return { handled: true, type: "image", images };
+      }
+    }
+    return {
+      handled: true,
+      reply: "Maaf kak, size chart belum tersedia saat ini. Hubungi admin untuk info ukuran ya 🙏",
+    };
+  }
+
   // Contoh desain / hasil design
   const designKeywords = ["contoh design", "contoh desain", "hasil design", "hasil desain", "referensi design", "referensi desain", "contoh jersey", "lihat desain", "lihat design"];
   if (designKeywords.some((k) => lower.includes(k))) {
