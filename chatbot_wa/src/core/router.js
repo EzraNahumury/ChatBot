@@ -4,6 +4,19 @@ const { isRateLimited, randomDelay } = require("../utils/throttle");
 const { logger, maskPhone } = require("../utils/logger");
 const fs = require("fs");
 
+// Per-phone processing queue — prevents race conditions when same user sends multiple msgs
+const phoneQueues = new Map();
+
+function enqueueForPhone(phone, fn) {
+  const prev = phoneQueues.get(phone) || Promise.resolve();
+  const next = prev.then(fn).catch(() => {});
+  phoneQueues.set(phone, next);
+  next.finally(() => {
+    if (phoneQueues.get(phone) === next) phoneQueues.delete(phone);
+  });
+  return next;
+}
+
 // Route incoming message to appropriate handler
 async function routeMessage(sock, msg) {
   try {
@@ -56,9 +69,11 @@ async function routeMessage(sock, msg) {
       return;
     }
 
-    // Fall through to AI
-    const aiReply = await handleAI(phone, text);
-    await sendMessage(sock, jid, aiReply);
+    // Fall through to AI — enqueued per phone to avoid concurrent requests for same user
+    await enqueueForPhone(phone, async () => {
+      const aiReply = await handleAI(phone, text);
+      await sendMessage(sock, jid, aiReply);
+    });
   } catch (err) {
     logger.error({ err: err.message }, "routeMessage error");
   }
