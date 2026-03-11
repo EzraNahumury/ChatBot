@@ -1,20 +1,28 @@
 require("dotenv").config();
-const { startConnection } = require("./src/core/connection");
+const {
+  startConnection,
+  requestReconnect,
+  startConnectionWatchdog,
+} = require("./src/core/connection");
 const { startHealthServer } = require("./src/core/healthcheck");
-const { logger } = require("./src/utils/logger");
+const { logger, LOG_DIR } = require("./src/utils/logger");
 
 logger.info("Starting WhatsApp Chatbot (Ayres Parallel)...");
 logger.info({
   model: process.env.OLLAMA_MODEL || "gpt-oss:120b-cloud",
   host: process.env.OLLAMA_HOST || "https://ollama.com",
+  logDir: LOG_DIR,
 });
 
 // Start HTTP health check server FIRST (Railway requires PORT binding)
 startHealthServer();
+startConnectionWatchdog();
 
 startConnection().catch((err) => {
   logger.error({ err: err.message }, "Fatal error during startup");
-  process.exit(1);
+  setTimeout(() => {
+    requestReconnect("startup failure");
+  }, 3000);
 });
 
 // Graceful shutdown
@@ -30,10 +38,10 @@ process.on("SIGINT", () => {
 
 process.on("uncaughtException", (err) => {
   logger.error({ err: err.message, stack: err.stack }, "Uncaught exception");
-  process.exit(1);
+  requestReconnect("uncaught exception");
 });
 
 process.on("unhandledRejection", (reason) => {
   logger.error({ reason }, "Unhandled rejection");
-  process.exit(1);
+  requestReconnect("unhandled rejection");
 });

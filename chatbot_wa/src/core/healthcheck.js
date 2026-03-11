@@ -9,6 +9,7 @@ let botStatus = {
   status: "starting",
   connectedAt: null,
   reconnectAttempts: 0,
+  lastDisconnectReason: null,
 };
 let currentQR = null;
 
@@ -28,6 +29,7 @@ app.get("/api/status", (req, res) => {
     connectedAt: botStatus.connectedAt,
     uptimeSeconds: Math.floor(process.uptime()),
     reconnectAttempts: botStatus.reconnectAttempts,
+    lastDisconnectReason: botStatus.lastDisconnectReason,
     hasQR: !!currentQR,
   });
 });

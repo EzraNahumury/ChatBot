@@ -3,6 +3,7 @@ const { handleAI } = require("../handlers/aiHandler");
 const { isRateLimited, randomDelay } = require("../utils/throttle");
 const { logger, maskPhone } = require("../utils/logger");
 const fs = require("fs");
+const path = require("path");
 
 // Per-phone processing queue — prevents race conditions when same user sends multiple msgs
 const phoneQueues = new Map();
@@ -62,7 +63,14 @@ async function routeMessage(sock, msg) {
     if (commandResult.handled) {
       logger.info({ phone: maskPhone(phone) }, `Command handled: "${text.slice(0, 30)}"`);
       if (commandResult.type === "image") {
-        await sendImages(sock, jid, commandResult.images);
+        const sentCount = await sendImages(sock, jid, commandResult.images);
+        if (sentCount === 0) {
+          await sendMessage(
+            sock,
+            jid,
+            "Maaf kak, gambar belum berhasil terkirim. Coba ulangi sekali lagi atau ketik admin ya 🙏"
+          );
+        }
       } else {
         await sendMessage(sock, jid, commandResult.reply);
       }
@@ -88,18 +96,46 @@ async function sendMessage(sock, jid, text) {
 }
 
 async function sendImages(sock, jid, images) {
+  let sentCount = 0;
+
   for (const img of images) {
     try {
-      const buffer = fs.readFileSync(img.path);
+      if (!img?.path || !fs.existsSync(img.path)) {
+        logger.error({ jid, path: img?.path }, "Image file not found");
+        continue;
+      }
+
+      const ext = path.extname(img.path).toLowerCase();
+      const mimetype = getImageMimeType(ext);
+
       await sock.sendMessage(jid, {
-        image: buffer,
+        image: { url: img.path },
         caption: img.caption || "",
+        mimetype,
+        fileName: path.basename(img.path),
       });
+      sentCount += 1;
+
       // Small delay between multiple images (anti-spam)
       if (images.length > 1) await new Promise((r) => setTimeout(r, 800));
     } catch (err) {
       logger.error({ jid, path: img.path, err: err.message }, "Failed to send image");
     }
+  }
+
+  return sentCount;
+}
+
+function getImageMimeType(ext) {
+  switch (ext) {
+    case ".jpg":
+    case ".jpeg":
+      return "image/jpeg";
+    case ".webp":
+      return "image/webp";
+    case ".png":
+    default:
+      return "image/png";
   }
 }
 

@@ -183,6 +183,7 @@ Ringkasan:
 - Persistent volume di `/data/auth` untuk menyimpan sesi WhatsApp.
 - Set `SESSION_DIR=/data/auth` di environment Railway.
 - Railway otomatis menjalankan `npm start` via `Procfile`.
+- Detail langkah deploy ada di `README-DEPLOY.md`.
 
 ---
 
