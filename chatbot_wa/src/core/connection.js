@@ -1,10 +1,3 @@
-const {
-  default: makeWASocket,
-  DisconnectReason,
-  useMultiFileAuthState,
-  makeCacheableSignalKeyStore,
-  fetchLatestBaileysVersion,
-} = require("@whiskeysockets/baileys");
 const { Boom } = require("@hapi/boom");
 const qrcode = require("qrcode-terminal");
 const path = require("path");
@@ -50,6 +43,15 @@ let lastActivityAt = Date.now();
 let lastConnectionEventAt = Date.now();
 let watchdogTimer = null;
 let currentState = "starting";
+let baileysModulePromise = null;
+
+function getBaileysModule() {
+  if (!baileysModulePromise) {
+    baileysModulePromise = import("@whiskeysockets/baileys");
+  }
+
+  return baileysModulePromise;
+}
 
 function ensureSessionDir() {
   if (!fs.existsSync(SESSION_DIR)) {
@@ -185,6 +187,14 @@ async function startConnection() {
 
   try {
     ensureSessionDir();
+
+    const {
+      default: makeWASocket,
+      DisconnectReason,
+      useMultiFileAuthState,
+      makeCacheableSignalKeyStore,
+      fetchLatestBaileysVersion,
+    } = await getBaileysModule();
 
     const { state, saveCreds } = await useMultiFileAuthState(SESSION_DIR);
     const { version } = await fetchLatestBaileysVersion();
