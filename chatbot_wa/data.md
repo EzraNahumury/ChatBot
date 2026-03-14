@@ -2,24 +2,16 @@ DATASET Ayres Apparel
 
 Ayres Apparel adalah tempat custom jersey dengan tema dan nilai nusantara, dengan harga terjangkau dan kualitas internasional.
 
-Siapa Ayres Apparel
-Ayres Apparel adalah sebuah tempat custom jersey yang mengusung tema dan nilai nusantara dalam desain jersey-nya. Mereka menawarkan pembuatan jersey dengan harga terjangkau, produksi super cepat, dan tanpa minimal order — bahkan bisa 1 pcs saja.
 
-Produk & Layanan Utama
-Ayres Apparel menyediakan berbagai kategori jersey sesuai kebutuhan, di antaranya:
- ✔️ Jersey Bola & Futsal
- ✔️ Volley
- ✔️ Sepeda (Cycling)
- ✔️ Basketball
- ✔️ Badminton
- ✔️ E-Sport
- ✔️ Mancing (dan lainnya)
- ✔️ Custom desain sesuai permintaan
- 	👉 Kamu bisa upload desain sendiri, atau tim desain mereka bantu buatkan.
-
-
-
-Produk & Layanan
+Pertanyaan Yang diperlukan : 
+1. Informasi Umum Brand
+Apa itu Ayres Apparel?
+Apa value atau misi merek Ayres Apparel?
+Sejarah singkat berdirinya Ayres Apparel dan sejak kapan berdiri?
+Siapa target audiens utama Ayres Apparel?
+Apa yang membedakan Ayres Apparel dari kompetitor lain?
+(mungkin bisa dijawab tim marketing (cs tidak begitu paham terkait brand)
+2. Produk & Layanan
 Apa saja kategori produk yang tersedia? 
 Apakah hanya jersey olahraga? 
 Tidak. Produk jersey dari Ayres Apparel tidak hanya digunakan untuk kegiatan olahraga seperti sepak bola atau futsal, tetapi juga dapat digunakan untuk berbagai kebutuhan lainnya, seperti seragam kelas, komunitas, organisasi, event, maupun seragam kantor. Dengan sistem custom desain, jersey dapat disesuaikan dengan identitas, logo, warna, dan konsep yang diinginkan oleh pelanggan sehingga lebih fleksibel untuk berbagai keperluan.
@@ -29,6 +21,7 @@ Tidak hanya jersey. Selain jersey custom, Ayres Apparel juga menyediakan beberap
  👉 Untuk setiap kategori:
 Deskripsi produk (pricelist dilampirkan) 
 Jersey merupakan produk utama dari Ayres Apparel yang dibuat menggunakan bahan yang ringan, nyaman, dan mampu menyerap keringat sehingga tetap nyaman digunakan dalam berbagai aktivitas. Produk ini memiliki keunggulan pada sistem custom design, di mana pelanggan dapat menentukan sendiri warna, motif, logo, tulisan, nama, maupun nomor sesuai kebutuhan. Jersey dari Ayres Apparel tidak hanya digunakan untuk kegiatan olahraga seperti sepak bola atau futsal, tetapi juga sering dimanfaatkan sebagai seragam kelas, komunitas, organisasi, maupun seragam kantor, sehingga selain berfungsi sebagai pakaian, jersey juga menjadi identitas bagi kelompok atau instansi yang menggunakannya
+
 
 
 Bahan, material, fitur unggulan (bahan dilampirkan)
@@ -43,6 +36,9 @@ Dengan sistem custom tersebut, jersey Ayres Apparel tidak hanya digunakan untuk 
 custom jersey bisa custom desain dengan minimal order 6 pcs
  👉 Apakah tersedia desain template yang bisa dipilih?
 Ya, tersedia berbagai template desain jersey yang dapat dipilih oleh pelanggan sebagai referensi. Pelanggan dapat menggunakan desain template yang sudah tersedia atau melakukan modifikasi sesuai kebutuhan, seperti mengganti warna, menambahkan logo, nama, dan nomor punggung. Selain itu, pelanggan juga dapat mengajukan desain sendiri (fully custom) yang kemudian akan disesuaikan oleh tim desain sebelum diproduksi. 
+
+Berikut adalah link untuk katalog kak. Bisa dilihat lihat dulu di katalog instagram ayres 😊https://www.instagram.com/ayres.sportswear?igsh=OHRzMzFid2VpM2Y2
+Note : selain katalog nusantara bisa digunakan kak
 
  👉 Adakah batasan jumlah minimal order atau bisa 1 pcs saja?
 Pemesanan dapat dilakukan secara satuan (1 pcs), namun akan dikenakan biaya tambahan. Sementara itu, untuk pemesanan jersey custom tanpa biaya tambahan, berlaku minimal order sebanyak 6 pcs. Kebijakan ini diterapkan agar proses produksi custom dapat berjalan lebih efisien.
@@ -59,9 +55,9 @@ Ketentuan desain dan revisi desain
 2. Revisi maksimal 3 kali
 3. Ganti desain/pattern/motif maksimal 1 kali dengan estimasi 3 hari kerja
 4. jika sudah proses desain dan dari tim kami sudah mengirimkan desain maka tidak ada refund
+(PAKET EKSPRESS DILAMPIRKAN)
 
-
-Proses Pemesanan
+3. Proses Pemesanan
 👉 Langkah-langkah lengkap cara order dari awal hingga selesai (PROSEDUR DILAMPIRKAN)
  👉 Metode desain:
 Upload desain sendiri (nanti setelah dikirimkan format corel draw akan di review tim design, jika aman lanjut produksi. jika ada beberapa hal yang perlu di desain ulang maka akan dibantu desain ulang dengan sistem dp desain)
@@ -89,12 +85,39 @@ ekspress 1 hari tambahan biaya 75rb
 ekspress 3 hari tambahan biaya 50rb
 ekspress 5 hari tambah biaya 30rb
 ekspress 7 hari tambah biaya 15rb
+(KETENTUAN EKSPRESS KAMI LAMPIRKAN)
 
 
-Harga & Pembayaran
+4. Harga & Pembayaran
 👉 Bagaimana struktur harga tiap produk / kategori? (PRICELIST DILAMPIRKAN)
 Struktur harga jersey Ayres Apparel dibagi berdasarkan kategori bahan atau tier produk, yaitu Standard Package, Classic Package, Pro Package, dan Warrior Combat. Setiap kategori memiliki perbedaan pada jenis material, tekstur kain, serta fitur yang ditawarkan, sehingga memengaruhi tingkat harga produk.
 Semakin tinggi kategori bahan yang dipilih, maka kualitas material, kenyamanan, dan fitur tambahan yang didapatkan juga semakin baik, sehingga harga yang ditawarkan juga lebih tinggi. Dengan adanya beberapa tier harga ini, pelanggan dapat menyesuaikan pilihan produk dengan kebutuhan serta anggaran yang dimiliki.
+Harga atasan saja full print
+Paket Standar A 70rb/pcs
+Paket Classic A 100rb/pcs
+Paket Pro A 125rb/pcs
+
+Harga setelan full print, beda di bahan kainnya
+Paket Standar C 120k/pcs
+Paket Classic D 145k/pcs
+Paket Pro C 185k/pcs
+
+
+
+
+Harga atasan full print dan celana polyflex, beda di bahan kainnya
+Paket STANDART B
+Harga 100rb/stel
+Paket CLASSIC C
+Harga 130rb/stel
+Paket PRO B
+Harga 165rb/stel
+
+untuk celana kami tersedia fullprint dan non print, untuk nonprint menggunakan polyflex sebagai nomor dan logo
+
+
+
+
 
 👉 Apakah harga flat atau tergantung desain/jumlah? 
 Harga produk tidak sepenuhnya flat, karena dapat dipengaruhi oleh beberapa faktor, seperti jenis bahan yang dipilih, tingkat kerumitan desain, serta jumlah pemesanan. Pada umumnya, semakin banyak jumlah pesanan, maka harga per produk dapat menjadi lebih efisien atau ekonomis dibandingkan pemesanan dalam jumlah kecil.
@@ -139,6 +162,81 @@ SENIN-SABTU JAM 08.30-16.30 WIB (HARI MINGGU DAN TANGGAL MERAH TERTENTU LIBUR)
 👉 Platform apa saja yang digunakan (mis. WhatsApp, Instagram, TikTok)?
 Kalau CS hanya Whatsapp saja
 
+
+
+8. Informasi Marketplace & Channel Penjualan
+👉 Apakah Ayres Apparel aktif di marketplace (Shopee, Lazada, Tokopedia etc)?
+👉 Jika ya, link toko & kategori produk di sana
+(terkait hal ini bisa ditanyakan ke admin marketplace, cs ayres kurang paham)
+
+9. Portfolio & Social Proof
+👉 Contoh hasil produksi (foto produk nyata)
+👉 Testimoni pelanggan
+👉 Klien institusional / tim besar yang sudah bekerja sama
+👉 Rating & review (situs / marketplace)
+social proof belum dijalankan karena masih proses produksi
+
+
+10. Konten Tambahan untuk Chatbot
+👉 FAQ yang sering muncul dari pelanggan
+👉 Pertanyaan umum pengguna (disingkat):
+“Apakah bisa custom nama dan nomor?”
+“Berapa waktu produksi ekspres?”
+“Bagaimana cara bayar?”
+Apakah jersey bisa custom desain?
+
+
+Berapa minimal order untuk jersey custom?
+
+
+Apakah bisa pesan satuan (1 pcs)?
+
+
+Apakah bisa custom nama, nomor punggung, dan logo?
+
+
+Berapa lama waktu produksi jersey?
+
+
+Apakah tersedia layanan produksi ekspres?
+
+
+Bahan apa saja yang tersedia untuk jersey?
+
+
+Apakah jersey adem dan nyaman dipakai?
+
+
+Apakah warna jersey mudah luntur?
+
+
+Apakah tersedia size anak (kids) dan big size?
+
+
+Apakah ada template desain yang bisa dipilih?
+
+
+Bagaimana sistem pembayaran yang tersedia?
+
+
+Apakah ada diskon untuk pemesanan dalam jumlah banyak?
+
+
+Apakah selain jersey ada produk lain seperti kaos, jaket, atau trackpants?
+
+
+
+
+
+
+
+
+
+
+
+
+
+DETAIL PRODUK (HARUS SUPER RINCI)
 Untuk tiap produk:
 1. Spesifikasi Teknis
 Jenis bahan (drifit apa? gramasi berapa?
@@ -221,6 +319,24 @@ Berapa kali revisi gratis? revisi desain 3x revisi minor masih free
 Revisi setelah ACC apakah boleh? untuk revisi dimaksimalkan sebelum acc, setelah acc tidak bisa revisi.
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+HARGA 
+Harga per pcs berapa?Pricelist dilampirkan
 Harga beda jika:
 
 
@@ -261,6 +377,13 @@ DP minimal berapa? dp desain 100 ribu dan dp produksi minimal 70% dari total ord
 Pelunasan kapan? pelunasan dilakukan setelah jersey jadi dan siap kirim
 
 
+
+
+
+
+
+
+
 WAKTU PRODUKSI
 Produksi normal berapa hari? waktu produksi 21 hari kerja setelah acc proofing, acc desain, data fix dan dp produksi
 
@@ -281,13 +404,6 @@ Apakah hari Minggu dihitung? hari minggu dan tanggal merah tidak dihitung
 
 
 Jika telat produksi → kompensasi? ada kompensasi sesuai waktu keterlambatan
-
-
-
-
-
-
-
 
 
 Lokasi & Kontak

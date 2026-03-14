@@ -46,12 +46,19 @@ async function routeMessage(sock, msg) {
     }
 
     const phone = jid.replace("@s.whatsapp.net", "");
-    logger.info({ phone: maskPhone(phone), text: text.slice(0, 80) }, "Incoming message");
+    logger.info(
+      { phone: maskPhone(phone), text: text.slice(0, 80) },
+      "Incoming message",
+    );
 
     // Rate limit check
     if (isRateLimited(phone)) {
       logger.warn({ phone: maskPhone(phone) }, "Rate limited");
-      await sendMessage(sock, jid, "Kak, kamu terlalu banyak kirim pesan. Tunggu sebentar ya 😊");
+      await sendMessage(
+        sock,
+        jid,
+        "Kak, kamu terlalu banyak kirim pesan. Tunggu sebentar ya 😊",
+      );
       return;
     }
 
@@ -61,14 +68,22 @@ async function routeMessage(sock, msg) {
     // Check command rules first
     const commandResult = handleCommand(phone, text);
     if (commandResult.handled) {
-      logger.info({ phone: maskPhone(phone) }, `Command handled: "${text.slice(0, 30)}"`);
+      logger.info(
+        { phone: maskPhone(phone) },
+        `Command handled: "${text.slice(0, 30)}"`,
+      );
       if (commandResult.type === "image") {
+        // Kirim pesan teks terlebih dahulu jika ada
+        if (commandResult.text) {
+          await sendMessage(sock, jid, commandResult.text);
+          await new Promise((r) => setTimeout(r, 400));
+        }
         const sentCount = await sendImages(sock, jid, commandResult.images);
         if (sentCount === 0) {
           await sendMessage(
             sock,
             jid,
-            "Maaf kak, gambar belum berhasil terkirim. Coba ulangi sekali lagi atau ketik admin ya 🙏"
+            "Maaf kak, gambar belum berhasil terkirim. Coba ulangi sekali lagi atau ketik admin ya 🙏",
           );
         }
       } else {
@@ -119,7 +134,10 @@ async function sendImages(sock, jid, images) {
       // Small delay between multiple images (anti-spam)
       if (images.length > 1) await new Promise((r) => setTimeout(r, 800));
     } catch (err) {
-      logger.error({ jid, path: img.path, err: err.message }, "Failed to send image");
+      logger.error(
+        { jid, path: img.path, err: err.message },
+        "Failed to send image",
+      );
     }
   }
 
