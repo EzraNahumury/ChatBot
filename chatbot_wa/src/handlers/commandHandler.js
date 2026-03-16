@@ -59,25 +59,31 @@ const KATALOG_CATEGORIES = [
     id: 1,
     name: "Classic Adi Vira",
     folder: "katalog classic Adi Vira",
-    keywords: ["adi vira", "adivira", "1"],
+    keywords: ["adi vira", "adivira", "pilih 1", "nomor 1", "katalog 1"],
   },
   {
     id: 2,
     name: "Classic Cakra Vega",
     folder: "katalog classic Cakra Vega",
-    keywords: ["cakra vega", "cakravega", "2"],
+    keywords: ["cakra vega", "cakravega", "pilih 2", "nomor 2", "katalog 2"],
   },
   {
     id: 3,
     name: "Pro Bima Sena",
     folder: "katalog pro Bima Sena",
-    keywords: ["bima sena", "bimasena", "3"],
+    keywords: ["bima sena", "bimasena", "pilih 3", "nomor 3", "katalog 3"],
   },
   {
     id: 4,
     name: "Pro Garuda Vastra",
     folder: "katalog pro Garuda Vastra",
-    keywords: ["garuda vastra", "garudavastra", "4"],
+    keywords: [
+      "garuda vastra",
+      "garudavastra",
+      "pilih 4",
+      "nomor 4",
+      "katalog 4",
+    ],
   },
 ];
 
@@ -194,6 +200,47 @@ function handleCommand(phone, text) {
     };
   }
 
+  // ── Order Intent — diprioritaskan sebelum semua state check ──────────────────
+  // Jika customer menyatakan niat mau pesan, clear semua state dan arahkan ke proses order
+  const orderIntentKeywords = [
+    "mau pesan",
+    "mau order",
+    "ingin pesan",
+    "ingin order",
+    "saya pesan",
+    "mau beli",
+    "ingin beli",
+    "saya order",
+    "mulai pesan",
+    "lanjut pesan",
+    "lanjut order",
+    "proses order",
+    "mau lanjut",
+    "lanjut aja",
+    "oke pesan",
+    "ok pesan",
+    "jadi pesan",
+  ];
+  if (orderIntentKeywords.some((k) => lower.includes(k))) {
+    clearKatalogState(phone);
+    clearPricelistJerseyState(phone);
+    return {
+      handled: true,
+      reply:
+        "Siap kak! Biar kami bantu susun ordernya, boleh info dulu beberapa hal berikut ya 😊\n\n" +
+        "1. Jersey untuk olahraga apa atau keperluan apa? (bola, futsal, volley, kelas, komunitas, dll.)\n" +
+        "2. Qty yang dibutuhkan?\n" +
+        "3. Mau atasan saja, setelan full-print, atau setelan dengan celana polyflex?\n" +
+        "4. Sudah punya desain atau mau pakai katalog / bantu desain dari kami?\n" +
+        "5. Bahan / tier yang diinginkan? (Standard, Classic, Pro, atau ada fitur khusus seperti UV-Protective, Silvertech, dsb.)\n" +
+        "6. Perlu custom nama, nomor, logo atau sponsor?\n" +
+        "7. Ukuran (dewasa, kids, big size, atau boxy)?\n" +
+        "8. Deadline pemakaian atau tanggal berapa jersey harus selesai?\n" +
+        "9. Alamat pengiriman (kota) dan ekspedisi pilihan?\n\n" +
+        "Kasih tahu ya, nanti kami hitungkan harganya dan berikan estimasi produksi. 🙏",
+    };
+  }
+
   // ── Pricelist Jersey: step 2 — user sedang memilih paket ─────────────────────
   if (pricelistJerseyState.get(phone) === "awaiting_pricelist_jersey") {
     const matched = PRICELIST_JERSEY_CATEGORIES.find((cat) =>
@@ -233,8 +280,47 @@ function handleCommand(phone, text) {
     };
   }
 
+  // ── Deteksi konteks order — dipakai di beberapa cek di bawah ─────────────────
+  const orderContextKeywordsGlobal = [
+    "hitungkan",
+    "tolong hitung",
+    "hitung harga",
+    "pemesanan",
+    "mau pesan",
+    "mau order",
+    "ingin pesan",
+    "ingin order",
+    "sudah dikirim",
+    "foto katalog",
+    "mengikuti katalog",
+    "sesuai katalog",
+    "pakai katalog",
+    "dari katalog",
+    "ikutin katalog",
+    "pcs",
+    "stel",
+    "qty",
+    "pasang jersey",
+    "deadline",
+    "size xl",
+    "size l",
+    "size m",
+    "size s",
+    "nama dan nomor",
+    "custom nama",
+    "nomor punggung",
+  ];
+  const isOrderContextGlobal = orderContextKeywordsGlobal.some((k) =>
+    lower.includes(k),
+  );
+
   // ── Katalog: step 2 — user sedang memilih kategori ───────────────────────────
   if (katalogState.get(phone) === "awaiting_katalog") {
+    // Jika ternyata user mengirim detail order, batalkan state katalog dan teruskan ke AI
+    if (isOrderContextGlobal) {
+      katalogState.delete(phone);
+      return { handled: false };
+    }
     const matched = KATALOG_CATEGORIES.find((cat) =>
       cat.keywords.some((kw) => lower.includes(kw)),
     );
@@ -253,11 +339,11 @@ function handleCommand(phone, text) {
       handled: true,
       reply:
         "Maaf kak, pilihannya tidak dikenali 😅\n\n" +
-        "Silakan ketik angka atau nama kategori:\n" +
-        "1️⃣ Classic Adi Vira\n" +
-        "2️⃣ Classic Cakra Vega\n" +
-        "3️⃣ Pro Bima Sena\n" +
-        "4️⃣ Pro Garuda Vastra",
+        "Silakan ketik nama katalog yang diinginkan:\n" +
+        "• *Adi Vira*\n" +
+        "• *Cakra Vega*\n" +
+        "• *Bima Sena*\n" +
+        "• *Garuda Vastra*",
     };
   }
 
@@ -269,7 +355,8 @@ function handleCommand(phone, text) {
     "pilihan jersey",
     "model jersey",
   ];
-  if (katalogKeywords.some((k) => lower.includes(k))) {
+
+  if (!isOrderContextGlobal && katalogKeywords.some((k) => lower.includes(k))) {
     katalogState.set(phone, "awaiting_katalog");
     return {
       handled: true,
@@ -279,7 +366,7 @@ function handleCommand(phone, text) {
         "2️⃣ Classic Cakra Vega\n" +
         "3️⃣ Pro Bima Sena\n" +
         "4️⃣ Pro Garuda Vastra\n\n" +
-        "Ketik angka atau nama katalog yang ingin kamu lihat ya kak 😊\n\n" +
+        "Ketik nama katalog yang ingin kamu lihat ya kak 😊\n\n" +
         "Untuk katalog design juga boleh cek di Instagram kami ya kak, disitu lengkap 😊\n" +
         "https://www.instagram.com/ayres.sportswear/",
     };
@@ -441,6 +528,7 @@ function handleCommand(phone, text) {
     "logo emboss",
     "lihat logo 3d",
     "contoh 3d",
+    "3d",
   ];
   if (logo3dKeywords.some((k) => lower.includes(k))) {
     return imageResponse(
@@ -455,29 +543,23 @@ function handleCommand(phone, text) {
 
   // ── Pola / Pattern ────────────────────────────────────────────────────────────
   const polaKeywords = [
-    "pola jersey",
-    "pola baju",
-    "pola desain",
-    "pattern jersey",
-    "pattern lab",
+    "pola",
+    "pattern",
     "motif jersey",
     "motif baju",
-    "pilihan pola",
+    "motif desain",
     "pilihan motif",
-    "referensi pola",
     "referensi motif",
-    "lihat pola",
-    "contoh pola",
-    "pola yang",
-    "minta pola",
+    "contoh motif",
   ];
   if (polaKeywords.some((k) => lower.includes(k))) {
     return imageResponse(
       "Pola",
-      "Berikut referensi pola / pattern jersey yang tersedia kak 😊\n\n" +
-        "Kalau ada motif yang cocok bisa langsung dipilih, atau kalau mau custom pola sendiri juga bisa!\n" +
-        "Tim desain kami siap bantu wujudkan polamu ✏️\n\n" +
-        "Cek gambar berikut ya 👇",
+      "Untuk pola jersey, ada dua pilihan kak 😊\n\n" +
+        "1️⃣ *Katalog Pola* — pilih dari pola yang sudah kami sediakan. Ada berbagai motif siap pakai yang tinggal dikombinasikan dengan warna dan identitas tim kakak.\n\n" +
+        "2️⃣ *Full Custom* — kalau mau pola unik yang belum ada di katalog, tim desain Ayres bisa bantu buatkan dari nol. Cukup kirimkan ide, referensi gambar, atau konsep yang diinginkan.\n\n" +
+        "Perlu diingat ya kak, kalau pola custom dari referensi, hasilnya mungkin tidak bisa 100% sama persis — tapi tim kami akan semaksimal mungkin menyesuaikan 🙏\n\n" +
+        "Ini contoh referensi pola yang tersedia 👇",
       "Maaf kak, gambar pola belum tersedia. Hubungi admin untuk info lebih lanjut ya 🙏",
     );
   }
@@ -568,21 +650,12 @@ function handleCommand(phone, text) {
 
   // ── Promo ─────────────────────────────────────────────────────────────────────
   const promoKeywords = [
-    "ada promo",
-    "promo apa",
-    "info promo",
-    "cek promo",
-    "lihat promo",
-    "promo sekarang",
-    "promo terbaru",
+    "promo",
     "promosi",
-    "diskon apa",
-    "ada diskon",
-    "info diskon",
+    "diskon",
     "potongan harga",
     "penawaran",
     "special offer",
-    "minta promo",
   ];
   if (promoKeywords.some((k) => lower.includes(k))) {
     return imageResponse(
@@ -690,6 +763,38 @@ function handleCommand(phone, text) {
       handled: true,
       reply:
         "Maaf kak, belum ada foto contoh desain yang tersedia saat ini. Hubungi admin untuk info lebih lanjut ya 🙏",
+    };
+  }
+
+  // ── Referensi desain via foto / forward ──────────────────────────────────────
+  const referensiDesainKeywords = [
+    "seperti ini bisa",
+    "kayak gini bisa",
+    "kayak ini bisa",
+    "model seperti ini",
+    "model kayak ini",
+    "mau seperti ini",
+    "mau kayak ini",
+    "bisa seperti ini",
+    "bisa kayak gini",
+    "desain seperti ini",
+    "desain kayak ini",
+    "referensi ini",
+    "contoh seperti ini",
+    "mau yang seperti",
+    "mau yang kayak",
+    "bisa bikin seperti",
+    "bisa bikin kayak",
+    "mirip seperti ini",
+    "mirip kayak ini",
+    "seperti foto ini",
+    "seperti gambar ini",
+  ];
+  if (referensiDesainKeywords.some((k) => lower.includes(k))) {
+    return {
+      handled: true,
+      reply:
+        "Baik kak, referensi desainnya sudah kami terima 😊\nNanti admin kami yang akan chat kembali untuk bantu proses selanjutnya ya 🙏",
     };
   }
 

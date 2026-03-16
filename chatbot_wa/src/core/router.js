@@ -32,6 +32,13 @@ async function routeMessage(sock, msg) {
     // Skip broadcast and status
     if (jid === "status@broadcast" || jid.includes("broadcast")) return;
 
+    // Deteksi apakah pesan berisi media (gambar/video/dokumen/sticker)
+    const isMediaMessage =
+      !!msg.message?.imageMessage ||
+      !!msg.message?.videoMessage ||
+      !!msg.message?.documentMessage ||
+      !!msg.message?.stickerMessage;
+
     // Extract text from message
     const text =
       msg.message?.conversation ||
@@ -39,6 +46,22 @@ async function routeMessage(sock, msg) {
       msg.message?.imageMessage?.caption ||
       msg.message?.videoMessage?.caption ||
       "";
+
+    // Jika pesan berupa media tanpa caption, balas dengan pesan admin follow-up
+    if (isMediaMessage && (!text || text.trim() === "")) {
+      const phone = jid.replace("@s.whatsapp.net", "");
+      logger.info(
+        { phone: maskPhone(phone) },
+        "Media message received, replying with admin follow-up",
+      );
+      await randomDelay();
+      await sendMessage(
+        sock,
+        jid,
+        "Baik kak, referensi desainnya sudah kami terima 😊\nNanti admin kami yang akan chat kembali untuk bantu proses selanjutnya ya 🙏",
+      );
+      return;
+    }
 
     if (!text || text.trim() === "") {
       logger.debug({ jid: maskPhone(jid) }, "Empty message, skipping");
