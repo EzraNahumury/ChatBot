@@ -161,22 +161,33 @@ function handleCommand(phone, text) {
   }
 
   // ── Greeting / Menu ──────────────────────────────────────────────────────────
+  const greetingKeywords = [
+    "halo",
+    "hai",
+    "helo",
+    "hello",
+    "hi ",
+    "hi,",
+    "menu",
+    "selamat pagi",
+    "selamat siang",
+    "selamat sore",
+    "selamat malam",
+    "assalamualaikum",
+    "permisi",
+    "p a g i",
+  ];
   if (
-    lower === "menu" ||
-    lower === "halo" ||
     lower === "hi" ||
-    lower === "hello"
+    lower === "menu" ||
+    greetingKeywords.some((k) => lower.includes(k))
   ) {
     return {
       handled: true,
       reply:
+        "Perkenalkan, saya *Zexo*, AI asisten CS yang akan membantu kakak ketika CS tidak berada di jam kerja 😊\n\n" +
         "Halo kak! Selamat datang di Ayres Parallel 👋\n\n" +
-        "Saya CS virtual yang siap bantu kamu.\n" +
-        "Silakan ceritakan kebutuhan jersey kamu, misalnya:\n" +
-        "- Cabang olahraga\n" +
-        "- Jumlah (qty)\n" +
-        "- Deadline\n\n" +
-        "Ketik pertanyaanmu dan saya akan bantu ya!",
+        "Ada yang bisa saya bantu? Mau bikin jersey untuk apa atau butuh info produk dulu?",
     };
   }
 
