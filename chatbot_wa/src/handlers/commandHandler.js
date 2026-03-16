@@ -767,6 +767,43 @@ function handleCommand(phone, text) {
   }
 
   // ── Referensi desain via foto / forward ──────────────────────────────────────
+  // ── Pertanyaan tentang foto/gambar yang dikirim customer ─────────────────────
+  const tanyaFotoKeywords = [
+    "di foto ini",
+    "di gambar ini",
+    "di foto tersebut",
+    "di gambar tersebut",
+    "foto ini bahan",
+    "gambar ini bahan",
+    "foto ini pakai",
+    "gambar ini pakai",
+    "foto tadi",
+    "gambar tadi",
+    "foto yang",
+    "gambar yang",
+    "ini bahan apa",
+    "ini pakai bahan",
+    "ini jersey apa",
+    "ini tipe apa",
+    "ini paket apa",
+    "ini model apa",
+    "ini jenis apa",
+    "yg di foto",
+    "yg di gambar",
+    "yang di foto",
+    "yang di gambar",
+    "kalo di foto",
+    "kalau di foto",
+    "kalo di gambar",
+    "kalau di gambar",
+  ];
+  if (tanyaFotoKeywords.some((k) => lower.includes(k))) {
+    return {
+      handled: true,
+      reply: "Baik kak, nanti saya tanyakan ke admin ya 🙏",
+    };
+  }
+
   const referensiDesainKeywords = [
     "seperti ini bisa",
     "kayak gini bisa",
