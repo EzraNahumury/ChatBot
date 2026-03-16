@@ -3,6 +3,16 @@ const path = require("path");
 const fs = require("fs");
 
 const GAMBAR_DIR = path.join(__dirname, "../../gambar");
+const ADMIN_IMAGE_FOLLOWUP_REPLY =
+  "Baik kak, nanti akan ada admin yang memberikan updatean selanjutnya.";
+const JERSEY_DESIGN_IG_LINK = "https://www.instagram.com/ayres.sportswear/";
+const DESIGN_SPECIFIC_REPLY =
+  "Kalau contoh yang spesifik nanti admin akan menghubungi lagi ya kak. Mungkin bisa lihat contoh hasil design juga di link IG kami: " +
+  JERSEY_DESIGN_IG_LINK;
+const EXPRESS_REPLY =
+  "Untuk paket express tersedia opsi 1 hari (+Rp75.000), 3 hari (+Rp50.000), 5 hari (+Rp30.000), dan 7 hari (+Rp15.000) ya kak. " +
+  "Note: penerimaan express menyesuaikan load produksi, jadi tidak semua request express bisa kami terima. " +
+  "Nanti admin akan bantu cek dulu ke bagian produksi ya.";
 
 // Rule-based commands checked BEFORE sending to AI
 // Returns { handled: true, reply: string }
@@ -102,12 +112,12 @@ function getImagesFromFolder(folderName, firstCaption = "") {
 }
 
 // ─── Helper: Kembalikan response image, atau fallback teks jika folder kosong ─
-function imageResponse(folderName, text, fallbackMsg, firstCaption = "") {
+function imageResponse(folderName, text, _fallbackMsg, firstCaption = "") {
   const images = getImagesFromFolder(folderName, firstCaption);
   if (images.length > 0) {
     return { handled: true, type: "image", text, images };
   }
-  return { handled: true, reply: fallbackMsg };
+  return { handled: true, reply: ADMIN_IMAGE_FOLLOWUP_REPLY };
 }
 
 // ─── Helper: Katalog ──────────────────────────────────────────────────────────
@@ -253,6 +263,27 @@ function handleCommand(phone, text) {
   }
 
   // ── Pricelist Jersey: step 2 — user sedang memilih paket ─────────────────────
+  const expressKeywords = [
+    "express",
+    "ekspres",
+    "urgent",
+    "produksi cepat",
+    "proses cepat",
+    "sehari jadi",
+    "1 hari",
+    "3 hari",
+    "5 hari",
+    "7 hari",
+  ];
+  if (expressKeywords.some((k) => lower.includes(k))) {
+    clearKatalogState(phone);
+    clearPricelistJerseyState(phone);
+    return {
+      handled: true,
+      reply: EXPRESS_REPLY,
+    };
+  }
+
   if (pricelistJerseyState.get(phone) === "awaiting_pricelist_jersey") {
     const matched = PRICELIST_JERSEY_CATEGORIES.find((cat) =>
       cat.keywords.some((kw) => lower.includes(kw)),
@@ -273,7 +304,7 @@ function handleCommand(phone, text) {
       }
       return {
         handled: true,
-        reply: `Maaf kak, gambar pricelist *${matched.name}* belum tersedia. Hubungi admin ya 🙏`,
+        reply: ADMIN_IMAGE_FOLLOWUP_REPLY,
       };
     }
     // Pilihan tidak dikenali, tanya ulang
@@ -343,7 +374,7 @@ function handleCommand(phone, text) {
       }
       return {
         handled: true,
-        reply: `Maaf kak, gambar katalog *${matched.name}* belum tersedia. Hubungi admin ya 🙏`,
+        reply: ADMIN_IMAGE_FOLLOWUP_REPLY,
       };
     }
     return {
@@ -737,6 +768,12 @@ function handleCommand(phone, text) {
   const designKeywords = [
     "contoh design",
     "contoh desain",
+    "minta contoh desain",
+    "minta contoh design",
+    "boleh minta contoh",
+    "minta contoh",
+    "contoh dong",
+    "ada contoh",
     "hasil design",
     "hasil desain",
     "referensi design",
@@ -746,34 +783,9 @@ function handleCommand(phone, text) {
     "lihat design",
   ];
   if (designKeywords.some((k) => lower.includes(k))) {
-    const designDir = path.join(GAMBAR_DIR, "hasil_design");
-    if (fs.existsSync(designDir)) {
-      const files = fs
-        .readdirSync(designDir)
-        .filter((f) => /\.(jpg|jpeg|png|webp)$/i.test(f));
-      if (files.length > 0) {
-        const images = files.map((f, i) => ({
-          path: path.join(designDir, f),
-          caption:
-            i === 0
-              ? `Ini beberapa contoh hasil desain jersey kami kak! ✨\n\nSemua bisa dikustomisasi sesuai kebutuhan tim kamu 🔥`
-              : "",
-        }));
-        return {
-          handled: true,
-          type: "image",
-          text:
-            "Berikut beberapa contoh hasil desain jersey Ayres Apparel kak 😊\n\n" +
-            "Semua desain bisa disesuaikan — warna, logo, nama, nomor punggung, sponsor, semuanya custom!\n" +
-            "Kalau mau pakai salah satu sebagai referensi juga bisa ya 🎨",
-          images,
-        };
-      }
-    }
     return {
       handled: true,
-      reply:
-        "Maaf kak, belum ada foto contoh desain yang tersedia saat ini. Hubungi admin untuk info lebih lanjut ya 🙏",
+      reply: DESIGN_SPECIFIC_REPLY,
     };
   }
 
@@ -846,7 +858,33 @@ function handleCommand(phone, text) {
     };
   }
 
-  // ── Blacklist check (spam/inappropriate) ─────────────────────────────────────
+  // ── Fallback gambar tidak tersedia + blacklist ───────────────────────────────
+  // Fallback: user minta gambar/foto tetapi tidak terpetakan ke folder gambar yang ada
+  const unknownImageRequestKeywords = [
+    "kirim gambar",
+    "kirim foto",
+    "kirimkan gambar",
+    "kirimkan foto",
+    "minta gambar",
+    "minta foto",
+    "boleh minta gambar",
+    "boleh minta foto",
+    "share gambar",
+    "share foto",
+    "lihat gambar",
+    "lihat foto",
+    "contoh gambar",
+    "contoh foto",
+    "gambar jersey",
+    "foto jersey",
+  ];
+  if (unknownImageRequestKeywords.some((k) => lower.includes(k))) {
+    return {
+      handled: true,
+      reply: ADMIN_IMAGE_FOLLOWUP_REPLY,
+    };
+  }
+
   const blacklist = ["judi", "togel", "porn", "bokep", "scam"];
   if (blacklist.some((word) => lower.includes(word))) {
     return {
