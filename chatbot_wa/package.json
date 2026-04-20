@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "description": "WhatsApp Chatbot via WhatsApp Web Automation with Ollama AI",
   "main": "index.js",
+  "license": "MIT",
+  "author": "Ezra Kristanto Nahumury",
   "scripts": {
     "start": "node index.js",
     "dev": "node --watch index.js"

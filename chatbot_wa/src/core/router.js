@@ -117,8 +117,25 @@ async function routeMessage(sock, msg) {
 
     // Fall through to AI — enqueued per phone to avoid concurrent requests for same user
     await enqueueForPhone(phone, async () => {
-      const aiReply = await handleAI(phone, text);
-      await sendMessage(sock, jid, aiReply);
+      const aiResult = await handleAI(phone, text);
+
+      // AI bisa return string (teks) atau object { type: 'image', images, text }
+      if (aiResult && typeof aiResult === "object" && aiResult.type === "image") {
+        if (aiResult.text) {
+          await sendMessage(sock, jid, aiResult.text);
+          await new Promise((r) => setTimeout(r, 400));
+        }
+        const sentCount = await sendImages(sock, jid, aiResult.images);
+        if (sentCount === 0) {
+          await sendMessage(
+            sock,
+            jid,
+            "Maaf kak, gambar belum berhasil terkirim. Coba ulangi sekali lagi atau ketik admin ya 🙏",
+          );
+        }
+      } else {
+        await sendMessage(sock, jid, aiResult);
+      }
     });
   } catch (err) {
     logger.error({ err: err.message }, "routeMessage error");

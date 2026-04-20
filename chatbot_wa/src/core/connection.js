@@ -210,7 +210,7 @@ async function startConnection() {
         keys: makeCacheableSignalKeyStore(state.keys, BAILEYS_LOGGER),
       },
       printQRInTerminal: false,
-      browser: ["AyresParallel-Bot", "Chrome", "124.0.0"],
+      browser: ["AyresApparel-Bot", "Chrome", "124.0.0"],
       markOnlineOnConnect: false,
       syncFullHistory: false,
       connectTimeoutMs: 60_000,

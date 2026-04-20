@@ -132,7 +132,7 @@ function getKatalogImages(folder, categoryName) {
     path: path.join(folderPath, f),
     caption:
       i === 0
-        ? `Ini katalog *${categoryName}* kak! 🔥\n\nKalau ada yang cocok, langsung kabarin kami ya 😊`
+        ? `Ini katalog *${categoryName}* kak! 🔥\n\nSemua desain katalog kami tersedia dalam versi *lengan pendek* ya kak, tapi kalau mau *lengan panjang* juga bisa dibuatkan.\nKalau ada yang cocok, langsung kabarin kami ya 😊`
         : "",
   }));
 }
@@ -196,7 +196,7 @@ function handleCommand(phone, text) {
       handled: true,
       reply:
         "Perkenalkan, saya *Zexo*, AI asisten CS yang akan membantu kakak ketika CS tidak berada di jam kerja 😊\n\n" +
-        "Halo kak! Selamat datang di Ayres Parallel 👋\n\n" +
+        "Halo kak! Selamat datang di Ayres Apparel 👋\n\n" +
         "Ada yang bisa saya bantu? Mau bikin jersey untuk apa atau butuh info produk dulu?",
     };
   }
@@ -399,6 +399,19 @@ function handleCommand(phone, text) {
   ];
 
   if (!isOrderContextGlobal && katalogKeywords.some((k) => lower.includes(k))) {
+    // Jika nama katalog spesifik sudah disebut di pesan yang sama, langsung kirim gambarnya
+    const directKatalogMatch = KATALOG_CATEGORIES.find((cat) =>
+      cat.keywords.some((kw) => lower.includes(kw)),
+    );
+    if (directKatalogMatch) {
+      katalogState.delete(phone);
+      const images = getKatalogImages(directKatalogMatch.folder, directKatalogMatch.name);
+      if (images.length > 0) {
+        return { handled: true, type: "image", images };
+      }
+      return { handled: true, reply: ADMIN_IMAGE_FOLLOWUP_REPLY };
+    }
+
     katalogState.set(phone, "awaiting_katalog");
     return {
       handled: true,
@@ -412,6 +425,23 @@ function handleCommand(phone, text) {
         "Untuk katalog design juga boleh cek di Instagram kami ya kak, disitu lengkap 😊\n" +
         "https://www.instagram.com/ayres.sportswear/",
     };
+  }
+
+  // ── Katalog: direct name mention tanpa state (misal: "cakra vega" langsung) ──
+  const directCatalogRequest = KATALOG_CATEGORIES.find((cat) =>
+    cat.keywords.some((kw) => lower.includes(kw)),
+  );
+  if (
+    directCatalogRequest &&
+    !isOrderContextGlobal &&
+    /(gambar|foto|contoh|lihat|minta|kirim|katalog)/i.test(lower)
+  ) {
+    katalogState.delete(phone);
+    const images = getKatalogImages(directCatalogRequest.folder, directCatalogRequest.name);
+    if (images.length > 0) {
+      return { handled: true, type: "image", images };
+    }
+    return { handled: true, reply: ADMIN_IMAGE_FOLLOWUP_REPLY };
   }
 
   // ── Size Chart Boxy (cek SEBELUM size chart biasa) ───────────────────────────
@@ -578,7 +608,13 @@ function handleCommand(phone, text) {
       "Ini contoh logo 3D yang bisa ditambahkan pada jersey kak ✨\n\n" +
         "Logo 3D memberikan tampilan lebih premium dan eksklusif dibanding logo printing biasa.\n" +
         "Cocok untuk tim atau instansi yang ingin tampil lebih profesional 🔥\n\n" +
-        "Untuk detail harga logo 3D bisa konfirmasi ke admin ya kak 🙏",
+        "⚠️ *Penting:* Logo 3D *tidak tersedia untuk orderan satuan* ya kak.\n\n" +
+        "Berikut ketentuan logo 3D:\n\n" +
+        "🔹 *Tatami* — Minimal 6 pcs, tambahan Rp 20.000/pcs\n" +
+        "   ✅ Order 12 pcs ke atas: *FREE logo tatami!*\n\n" +
+        "🔹 *Flock* — Minimal 6 pcs, tambahan Rp 25.000/pcs\n\n" +
+        "🔹 *Rubber* — Minimal 30 pcs, tambahan Rp 30.000/pcs\n\n" +
+        "Untuk info lebih lanjut bisa konfirmasi ke admin ya kak 🙏",
       "Maaf kak, contoh gambar logo 3D belum tersedia. Hubungi admin untuk info lebih lanjut ya 🙏",
     );
   }
@@ -642,6 +678,8 @@ function handleCommand(phone, text) {
 
   // ── Pricelist Jaket ───────────────────────────────────────────────────────────
   const pricelistJaketKeywords = [
+    "jaket",
+    "jacket",
     "harga jaket",
     "pricelist jaket",
     "price jaket",
@@ -702,12 +740,28 @@ function handleCommand(phone, text) {
   if (promoKeywords.some((k) => lower.includes(k))) {
     return imageResponse(
       "Promo",
-      "Ada kabar baik kak, cek promo terbaru dari Ayres Apparel di bawah ini 🎉\n\n" +
-        "Jangan sampai ketinggalan ya! Promo berlaku selama persediaan ada.\n" +
-        "Kalau ada yang ingin ditanyakan soal syarat promonya, langsung tanya aja 😊\n\n" +
-        "Ini infonya 👇",
+      "Berikut kak untuk promo bulan ini, mau pilih paket yang mana nih kak sebelum kehabisan 😁",
       "Maaf kak, info gambar promo belum tersedia. Hubungi admin untuk promo terkini ya 🙏",
     );
+  }
+
+  // ── COD ────────────────────────────────────────────────────────────────────────
+  const codKeywords = [
+    "cod",
+    "cash on delivery",
+    "bayar di tempat",
+    "bayar ditempat",
+    "bayar langsung",
+    "bayar waktu terima",
+    "bayar saat terima",
+  ];
+  if (codKeywords.some((k) => lower.includes(k))) {
+    return {
+      handled: true,
+      reply:
+        "Mohon maaf kak, sampai saat ini kita masih belum bisa melayani atau menerima pembayaran yang bersifat COD ya kak 🙏\n\n" +
+        "Untuk pembayaran bisa melalui transfer bank BCA atau QRIS ya kak 😊",
+    };
   }
 
   // ── Reseller ──────────────────────────────────────────────────────────────────

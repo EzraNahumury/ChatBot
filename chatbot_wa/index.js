@@ -7,7 +7,7 @@ const {
 const { startHealthServer } = require("./src/core/healthcheck");
 const { logger, LOG_DIR } = require("./src/utils/logger");
 
-logger.info("Starting WhatsApp Chatbot (Ayres Parallel)...");
+logger.info("Starting WhatsApp Chatbot (Ayres Apparel)...");
 logger.info({
   model: process.env.OLLAMA_MODEL || "gpt-oss:120b-cloud",
   host: process.env.OLLAMA_HOST || "https://ollama.com",

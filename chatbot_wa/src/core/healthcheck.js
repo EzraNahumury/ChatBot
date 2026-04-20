@@ -70,7 +70,7 @@ app.get("/", (req, res) => {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ayres Parallel — Bot Panel</title>
+  <title>Ayres Apparel — Bot Panel</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -187,7 +187,7 @@ app.get("/", (req, res) => {
 </head>
 <body>
 
-  <h1>Ayres Parallel &mdash; <span>Bot Panel</span></h1>
+  <h1>Ayres Apparel &mdash; <span>Bot Panel</span></h1>
 
   <div class="card">
     <div id="status-badge" class="status-badge badge-other">

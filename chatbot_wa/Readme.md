@@ -1,159 +1,212 @@
-# 🤖 WhatsApp AI Chatbot - Ayres Parallel
+# WhatsApp Chatbot - Ayres Apparel
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
-[![Platform: Railway](https://img.shields.io/badge/Platform-Railway-blueviolet)](https://railway.app/)
-
-**Ayres Parallel Chatbot** adalah asisten virtual WhatsApp canggih yang menggabungkan automasi berbasis aturan (*rule-based*) dengan kecerdasan buatan (*AI*) menggunakan **Ollama API**. Dirancang khusus untuk operasional Customer Service (CS) toko jersey/apparel, bot ini mampu menangani ribuan chat, mengirim gambar katalog, menjelaskan detail produk, hingga membantu proses pemesanan secara otomatis 24/7.
+Bot WhatsApp berbasis `Baileys` + AI (`Ollama API`) untuk membalas chat customer secara otomatis. Dilengkapi fitur kirim gambar katalog, size chart, dan contoh desain.
 
 ---
 
-## ✨ Fitur Utama
+## Struktur Project
 
-- 🧠 **AI Hybrid System**: Menggunakan integrasi Ollama (LLM) untuk menjawab pertanyaan kompleks dan *rule-based handler* untuk perintah cepat.
-- 🖼️ **Multi-Media Support**: Mengirim katalog produk, pricelist, size chart, dan contoh desain secara otomatis.
-- 💬 **Context-Aware AI**: Mengingat riwayat percakapan untuk memberikan jawaban yang relevan dan personal.
-- 🚀 **Fast Response**: Dilengkapi dengan sistem antrean (*queue*) per nomor WhatsApp untuk mencegah tabrakan pesan.
-- 🛡️ **Anti-Ban Protection**: Simulasi pengetikan manusia (*human-like typing*) dan pembatasan frekuensi pesan (*rate limiting*).
-- 📊 **Health Monitoring**: Server Express internal untuk memantau status koneksi bot.
-- 🔄 **Auto Reconnect**: Watchdog internal untuk memastikan bot selalu terhubung kembali jika koneksi terputus.
-
----
-
-## 📁 Struktur Proyek
-
-```text
+```
 chatbot_wa/
-├── auth/                       # Folder sesi WhatsApp (QR Login)
-├── gambar/                     # Assets gambar (Katalog, Size Chart, dll)
-│   ├── katalog/                # Berbagi kategori katalog jersey
-│   ├── Size Chart/             # Gambar ukuran produk
-│   └── hasil_design/           # Portfolio desain
-├── src/                        # Source code utama
-│   ├── ai/                     # Integrasi Ollama & Prompt Builder
-│   ├── core/                   # Koneksi Baileys & Routing utama
-│   ├── handlers/               # Logika perintah & Fallback AI
-│   └── utils/                  # Logger, Throttle, & Helper
-├── .env                        # Konfigurasi lingkungan
-├── index.js                    # Entry point aplikasi
-├── knowledge-base.json         # Data pengetahuan bisnis
-└── package.json                # Dependensi & Scripts
+├── index.js                    # Entry point
+├── knowledge-base.json         # Knowledge base CS (Ayres Apparel)
+├── .env / .env.example         # Konfigurasi environment
+├── gambar/
+│   ├── katalog/
+│   │   ├── katalog classic Adi Vira/
+│   │   ├── katalog classic Cakra Vega/
+│   │   ├── katalog pro Bima Sena/
+│   │   └── katalog pro Garuda Vastra/
+│   ├── Size Chart/
+│   └── hasil_design/
+└── src/
+    ├── ai/
+    │   ├── ollama.js           # Integrasi Ollama API + history chat
+    │   └── prompt.js           # System prompt builder dari knowledge base
+    ├── core/
+    │   ├── connection.js       # Koneksi Baileys + QR login
+    │   ├── healthcheck.js      # HTTP health server (Express)
+    │   └── router.js           # Message router (command → image → AI)
+    ├── handlers/
+    │   ├── commandHandler.js   # Rule-based commands + kirim gambar
+    │   └── aiHandler.js        # Handler fallback ke AI
+    └── utils/
+        ├── logger.js           # Logging via pino
+        └── throttle.js         # Rate limiting + random delay
 ```
 
 ---
 
-## 🚀 Panduan Instalasi
+## 1. Persiapan
 
-### Prasyarat
-- **Node.js** >= v18.0.0
-- **npm** atau **yarn**
-- **Ollama API Host & Key**
-
-### Langkah-langkah
-1. **Clone repositori:**
-   ```bash
-   git clone https://github.com/EzraNahumury/chatbot_wa.git
-   cd chatbot_wa
-   ```
-
-2. **Install dependensi:**
-   ```bash
-   npm install
-   ```
-
-3. **Konfigurasi Environment:**
-   Salin file `.env.example` menjadi `.env` dan isi variabel yang diperlukan:
-   ```bash
-   cp .env.example .env
-   ```
-
-   **Detail Variabel `.env`:**
-   | Variabel | Deskripsi | Default |
-   |----------|-----------|---------|
-   | `OLLAMA_HOST` | URL host Ollama API | - |
-   | `OLLAMA_KEY` | API Key untuk autentikasi | - |
-   | `OLLAMA_MODEL` | Model AI yang digunakan | - |
-   | `RATE_LIMIT_MAX` | Maksimal pesan per jendela waktu | `10` |
-   | `SESSION_DIR` | Folder penyimpanan sesi WA | `./auth` |
+Pastikan sudah terpasang:
+- Node.js `>= 18`
+- npm
+- Akun WhatsApp yang akan dipakai untuk bot
+- API key Ollama
 
 ---
 
-## 💻 Cara Menjalankan
+## 2. Install dependency
 
-### Mode Produksi
+```bash
+cd chatbot_wa
+npm install
+```
+
+---
+
+## 3. Setup environment
+
+Copy file contoh env:
+
+```bash
+cp .env.example .env
+```
+
+Isi nilai di `.env`:
+
+```env
+# Ollama AI
+OLLAMA_HOST=https://ollama.com
+OLLAMA_KEY=your_ollama_api_key_here
+OLLAMA_MODEL=gpt-oss:120b-cloud
+
+# Bot
+AI_TIMEOUT=25000
+MAX_HISTORY=10
+
+# Rate Limiting (anti-ban)
+RATE_LIMIT_MAX=10
+RATE_LIMIT_WINDOW=60000
+REPLY_DELAY_MIN=800
+REPLY_DELAY_MAX=2000
+
+# Logging
+LOG_LEVEL=info
+
+# Session (Railway: /data/auth, Local: ./auth)
+SESSION_DIR=./auth
+```
+
+---
+
+## 4. Siapkan folder gambar
+
+Taruh gambar di folder yang sesuai (format: `.jpg`, `.jpeg`, `.png`, `.webp`):
+
+| Folder | Isi |
+|---|---|
+| `gambar/katalog/katalog classic Adi Vira/` | Foto katalog Classic Adi Vira |
+| `gambar/katalog/katalog classic Cakra Vega/` | Foto katalog Classic Cakra Vega |
+| `gambar/katalog/katalog pro Bima Sena/` | Foto katalog Pro Bima Sena |
+| `gambar/katalog/katalog pro Garuda Vastra/` | Foto katalog Pro Garuda Vastra |
+| `gambar/Size Chart/` | Gambar size chart jersey |
+| `gambar/hasil_design/` | Foto contoh hasil desain jersey |
+
+Gambar pertama di setiap folder akan diberi caption otomatis, gambar berikutnya dikirim tanpa caption.
+
+---
+
+## 5. Jalankan bot
+
 ```bash
 npm start
 ```
 
-### Mode Pengembangan (Auto-reload)
+Mode development (auto-restart):
+
 ```bash
 npm run dev
 ```
 
-### Autentikasi Pertama Kali
-1. Jalankan bot.
-2. Terminal akan menampilkan **QR Code**.
-3. Buka WhatsApp di ponsel Anda > **Perangkat Tertaut** > **Tautkan Perangkat**.
-4. Scan QR Code yang muncul di terminal.
+---
+
+## 6. Scan QR WhatsApp
+
+Saat pertama kali jalan, terminal menampilkan QR code.
+
+1. Buka WhatsApp di HP.
+2. Masuk ke **Perangkat tertaut > Tautkan perangkat**.
+3. Scan QR yang muncul di terminal.
+
+Jika sukses, log akan menunjukkan status `connected`.
 
 ---
 
-## 🤖 Perintah yang Didukung
+## 7. Health Check
 
-Bot akan mengenali perintah berikut secara otomatis sebelum dilempar ke AI:
+Bot menyediakan HTTP server untuk monitoring:
 
-| Perintah | Deskripsi |
-|----------|-----------|
-| `katalog` | Menampilkan menu kategori katalog jersey |
-| `pricelist`| Menampilkan pilihan daftar harga paket |
-| `size chart`| Mengirim gambar panduan ukuran |
-| `alur order`| Menjelaskan langkah-langkah pemesanan |
-| `bahan` | Menampilkan informasi jenis kain |
-| `admin` | Menghubungkan langsung ke CS manusia |
-| `reset` | Menghapus riwayat percakapan dengan AI |
+- `GET http://localhost:3000/` — status dasar
+- `GET http://localhost:3000/health` — return `200` jika status `connected`
+
+Digunakan Railway untuk memastikan service hidup.
 
 ---
 
-## 🔧 Integrasi AI (Ollama)
+## 8. Perintah yang Dikenali Bot
 
-Bot ini menggunakan file `knowledge-base.json` sebagai sumber data utama bagi AI untuk menjawab pertanyaan seputar:
-- Detail layanan (Express, Custom Design, dll)
-- Informasi harga & paket
-- Syarat dan ketentuan
-- FAQ umum
+Bot mengecek command rule-based **sebelum** meneruskan ke AI.
 
-Sistem akan secara cerdas menyaring pesan. Jika pesan mengandung kata kunci "gambar" atau "katalog", bot akan mengarahkan ke pengiriman file fisik. Jika berupa pertanyaan umum, AI akan menjawab sesuai konteks bisnis.
+| Pesan Customer | Respons Bot |
+|---|---|
+| `ping` | `pong` |
+| `menu` / `halo` / `hi` / `hello` | Pesan sambutan |
+| `reset` / `/reset` | Reset history percakapan |
+| `admin` | Handoff ke admin |
+| `katalog` / `catalog` / `list jersey` / `model jersey` / dll | Tampilkan menu 4 kategori katalog |
+| *(pilih kategori)* `1`–`4` atau nama katalog | Kirim gambar katalog yang dipilih |
+| `size chart` / `ukuran jersey` / `ukuran baju` / dll | Kirim gambar size chart |
+| `contoh desain` / `hasil desain` / `referensi design` / dll | Kirim foto contoh hasil desain |
+| Pesan lainnya | Diteruskan ke AI (Ollama) |
 
----
-
-## 🌩️ Deployment (Railway)
-
-Proyek ini siap untuk di-deploy ke **Railway**:
-1. Pastikan `build command` adalah `npm install`.
-2. Pastikan `start command` adalah `npm start`.
-3. Gunakan **Railway Volume** dan kaitkan ke `/data/auth` agar sesi WhatsApp tidak hilang saat restart.
-4. Set `SESSION_DIR=/data/auth` di variabel lingkungan Railway.
-
----
-
-## 🛠️ Troubleshooting
-
-- **QR Code Terpotong**: Perkecil ukuran font terminal atau gunakan terminal modern seperti VS Code Terminal.
-- **Sesi Logout Otomatis**: Hapus folder `auth/` dan scan ulang untuk mereset sesi.
-- **AI Tidak Menjawab**: Pastikan `OLLAMA_HOST` dapat dijangkau dan kuota API mencukupi.
+### Alur katalog (2 langkah):
+1. Customer ketik `katalog` → bot tampilkan 4 pilihan.
+2. Customer ketik angka (`1`–`4`) atau nama katalog → bot kirim foto katalog.
 
 ---
 
-## 📄 Lisensi
+## 9. Knowledge Base
 
-Didistribusikan di bawah **Lisensi MIT**. Lihat file `LICENSE` untuk informasi lebih lanjut.
+File `knowledge-base.json` berisi informasi CS Ayres Apparel (layanan, harga, produksi, pengiriman, dll).
 
----
-
-## 🤝 Kontribusi
-
-Kontribusi selalu terbuka! Silakan lakukan *fork* dan ajukan *pull request* untuk perbaikan atau fitur baru.
+Untuk update konten, edit file tersebut langsung atau gunakan Admin UI (`chatbot_ui/`).
 
 ---
 
-**Dibuat dengan ❤️ oleh Ayres Parallel Team.**
+## 10. Deploy ke Railway
+
+Lihat panduan lengkap di: **`README-DEPLOY.md`**
+
+Ringkasan:
+- Persistent volume di `/data/auth` untuk menyimpan sesi WhatsApp.
+- Set `SESSION_DIR=/data/auth` di environment Railway.
+- Railway otomatis menjalankan `npm start` via `Procfile`.
+- Detail langkah deploy ada di `README-DEPLOY.md`.
+
+---
+
+## 11. Troubleshooting
+
+**QR tidak muncul:**
+- Pastikan proses tidak crash saat startup.
+- Hapus folder sesi `auth/` lalu jalankan ulang.
+
+**Status `logged_out`:**
+- Sesi terputus, bot akan generate QR baru.
+- Scan ulang QR terbaru.
+
+**Bot tidak mengirim gambar:**
+- Pastikan folder `gambar/` ada dan berisi file gambar.
+- Cek log error untuk path gambar yang bermasalah.
+
+**Bot balas error AI:**
+- Cek `OLLAMA_HOST`, `OLLAMA_KEY`, dan koneksi internet.
+- Pastikan model `OLLAMA_MODEL` tersedia di endpoint.
+
+**Port bentrok:**
+- Ubah `PORT` di environment sebelum menjalankan bot.
+
+**Rate limit terlalu ketat:**
+- Sesuaikan `RATE_LIMIT_MAX` dan `RATE_LIMIT_WINDOW` di `.env`.
