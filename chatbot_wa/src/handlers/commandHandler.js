@@ -34,7 +34,22 @@ const FINANCE_NUMBER = "+62 882-2596-8185";
 const BUKTI_TF_REPLY =
   "Terima kasih banyak ya kak 🙏\n\n" +
   `Mohon dipastikan bukti transaksinya sudah dikirim ke admin finance kami di ${FINANCE_NUMBER} ya kak supaya bisa segera dikonfirmasi.\n\n` +
-  "Setelah dikonfirmasi finance, tim desain kami langsung mulai proses ya 😊";
+  "Sambil menunggu konfirmasi finance, mohon dilengkapi *form order* berikut ya kak _(khusus orderan yang dikirim, kalau diambil sendiri alamat tidak perlu diisi)_ agar memudahkan kami menghitung biaya ongkir dan total pembelian 🙏\n\n" +
+  "*FORM ORDER*\n\n" +
+  "Nama : \n" +
+  "Alamat Lengkap : \n" +
+  "Desa/Kel : \n" +
+  "Kec : \n" +
+  "Kab/Kota : \n" +
+  "Prov : \n" +
+  "No HP : \n\n" +
+  "Paket yang diambil : \n" +
+  "Bahan utama : \n" +
+  "Kombinasi bahan (khusus pecah pola) : \n" +
+  "Nama tim : \n\n" +
+  "Promo yg diambil (s&k berlaku) : \n\n" +
+  "Note untuk admin (pattern lab) : \n\n" +
+  "Setelah form dilengkapi & finance konfirmasi pembayaran, tim desain kami langsung mulai proses ya 😊";
 
 function setAwaitingBuktiTf(phone) {
   awaitingBuktiTfState.set(phone, Date.now());
