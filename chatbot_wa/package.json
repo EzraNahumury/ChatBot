@@ -7,7 +7,7 @@
   "author": "Ezra Kristanto Nahumury",
   "scripts": {
     "start": "node index.js",
-    "dev": "node --watch index.js"
+    "dev": "node --watch-path=src --watch-path=index.js --watch-path=knowledge-base.json index.js"
   },
   "dependencies": {
     "@whiskeysockets/baileys": "^6.7.9",

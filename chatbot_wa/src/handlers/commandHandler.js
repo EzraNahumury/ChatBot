@@ -60,37 +60,37 @@ const PRICELIST_JERSEY_CATEGORIES = [
     id: 1,
     name: "Paket Standar",
     folder: "Paket Standar",
-    keywords: ["standar", "standard", "1"],
+    keywords: ["standar", "standard"],
   },
   {
     id: 2,
     name: "Paket Classic",
     folder: "Paket Classic",
-    keywords: ["classic", "klasik", "2"],
+    keywords: ["classic", "klasik"],
   },
   {
     id: 3,
     name: "Paket Pro",
     folder: "Paket Pro",
-    keywords: ["pro", "3"],
+    keywords: ["pro"],
   },
   {
     id: 4,
     name: "Warrior Combat",
     folder: "Warrior Combat",
-    keywords: ["warrior", "combat", "4"],
+    keywords: ["warrior", "combat"],
   },
   {
     id: 5,
     name: "Nusantara",
     folder: "Nusantara",
-    keywords: ["nusantara", "5"],
+    keywords: ["nusantara"],
   },
   {
     id: 6,
     name: "Tambahan",
     folder: "Tambahan",
-    keywords: ["tambahan", "extra", "biaya tambahan", "6"],
+    keywords: ["tambahan", "extra", "biaya tambahan"],
   },
 ];
 
@@ -354,9 +354,13 @@ function handleCommand(phone, text) {
   }
 
   if (pricelistJerseyState.get(phone) === "awaiting_pricelist_jersey") {
-    const matched = PRICELIST_JERSEY_CATEGORIES.find((cat) =>
-      cat.keywords.some((kw) => lower.includes(kw)),
-    );
+    // Match by exact number first (e.g. "1", "1 kak"), then by keyword substring
+    const numMatch = lower.match(/^([1-9])\b/);
+    const inputNum = numMatch ? parseInt(numMatch[1], 10) : null;
+    const matched = PRICELIST_JERSEY_CATEGORIES.find((cat) => {
+      if (inputNum !== null && inputNum === cat.id) return true;
+      return cat.keywords.some((kw) => lower.includes(kw));
+    });
     if (matched) {
       pricelistJerseyState.delete(phone);
       const images = getPricelistJerseyImages(matched.folder, matched.name);
@@ -432,9 +436,13 @@ function handleCommand(phone, text) {
       katalogState.delete(phone);
       return { handled: false };
     }
-    const matched = KATALOG_CATEGORIES.find((cat) =>
-      cat.keywords.some((kw) => lower.includes(kw)),
-    );
+    // Match by exact number first (e.g. "1", "1 kak"), then by keyword substring
+    const numMatch = lower.match(/^([1-9])\b/);
+    const inputNum = numMatch ? parseInt(numMatch[1], 10) : null;
+    const matched = KATALOG_CATEGORIES.find((cat) => {
+      if (inputNum !== null && inputNum === cat.id) return true;
+      return cat.keywords.some((kw) => lower.includes(kw));
+    });
     if (matched) {
       katalogState.delete(phone);
       const images = getKatalogImages(matched.folder, matched.name);
@@ -450,11 +458,11 @@ function handleCommand(phone, text) {
       handled: true,
       reply:
         "Maaf kak, pilihannya tidak dikenali 😅\n\n" +
-        "Silakan ketik nama katalog yang diinginkan:\n" +
-        "• *Adi Vira*\n" +
-        "• *Cakra Vega*\n" +
-        "• *Bima Sena*\n" +
-        "• *Garuda Vastra*",
+        "Silakan ketik angka atau nama katalog yang diinginkan:\n" +
+        "1️⃣ Adi Vira\n" +
+        "2️⃣ Cakra Vega\n" +
+        "3️⃣ Bima Sena\n" +
+        "4️⃣ Garuda Vastra",
     };
   }
 
