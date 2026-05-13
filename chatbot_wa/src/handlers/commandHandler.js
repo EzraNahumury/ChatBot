@@ -243,6 +243,65 @@ function getPricelistJerseyImages(subfolder, categoryName) {
   }));
 }
 
+// ─── Helper: deteksi customer konfirmasi sudah transfer DP ───────────────────
+// Dipakai hanya saat state awaitingBuktiTf aktif (gated, false-positive risk rendah).
+// Match: (a) frasa eksplisit "sudah transfer/tf/bayar"; (b) konfirmasi pendek
+// standalone "sudah", "sudah kak", "udah", "done", "ok sudah", dll.
+function isBuktiTfConfirmation(lower) {
+  const phraseKeywords = [
+    "sudah transfer",
+    "sudah ditransfer",
+    "udah transfer",
+    "telah transfer",
+    "sudah tf",
+    "udah tf",
+    "sudah saya transfer",
+    "udah saya transfer",
+    "saya sudah transfer",
+    "sudah saya tf",
+    "saya sudah tf",
+    "sudah bayar",
+    "udah bayar",
+    "sudah dibayar",
+    "udah dibayar",
+    "ini bukti",
+    "ini buktinya",
+    "buktinya kak",
+    "buktinya min",
+    "bukti tf",
+    "bukti transfer",
+    "bukti transaksi",
+    "transfer sudah",
+    "tf sudah",
+    "sudah berhasil transfer",
+    "udah berhasil transfer",
+    "berhasil transfer",
+    "sudah saya kirim bukti",
+    "udah saya kirim bukti",
+    "sudah kirim bukti",
+    "udah kirim bukti",
+  ];
+  if (phraseKeywords.some((k) => lower.includes(k))) return true;
+
+  // Standalone konfirmasi pendek — wajib match seluruh pesan setelah trim.
+  // Examples: "sudah", "sudah kak", "udah ya", "done", "selesai".
+  const cleaned = lower.trim().replace(/[!?.,]+$/g, "").trim();
+  if (
+    /^(sudah|udah|done|selesai|sip|siap)(\s+(kak|min|ya|aja|nih|dong|bos|bro|gan|sy|saya))?$/i.test(
+      cleaned,
+    )
+  ) {
+    return true;
+  }
+
+  // "ok sudah", "oke sudah", "okey sudah"
+  if (/^(ok|oke|okey|okay)\s+(sudah|udah)(\s+(kak|min|ya|aja))?$/i.test(cleaned)) {
+    return true;
+  }
+
+  return false;
+}
+
 // ─── Main handler ─────────────────────────────────────────────────────────────
 function handleCommand(phone, text) {
   const lower = text.trim().toLowerCase();
@@ -254,40 +313,9 @@ function handleCommand(phone, text) {
 
   // ── Bukti TF: customer mengkonfirmasi transfer setelah rekening dikirim ─────
   // Hanya aktif jika state awaitingBuktiTf di-set (artinya AI sudah kirim rekening)
-  if (isAwaitingBuktiTf(phone)) {
-    const buktiTfKeywords = [
-      "sudah transfer",
-      "sudah ditransfer",
-      "udah transfer",
-      "telah transfer",
-      "sudah tf",
-      "udah tf",
-      "sudah saya transfer",
-      "udah saya transfer",
-      "saya sudah transfer",
-      "sudah saya tf",
-      "saya sudah tf",
-      "sudah bayar",
-      "udah bayar",
-      "sudah dibayar",
-      "udah dibayar",
-      "ini bukti",
-      "ini buktinya",
-      "buktinya kak",
-      "buktinya min",
-      "bukti tf",
-      "bukti transfer",
-      "bukti transaksi",
-      "transfer sudah",
-      "tf sudah",
-      "sudah berhasil transfer",
-      "udah berhasil transfer",
-      "berhasil transfer",
-    ];
-    if (buktiTfKeywords.some((k) => lower.includes(k))) {
-      clearAwaitingBuktiTf(phone);
-      return { handled: true, reply: BUKTI_TF_REPLY };
-    }
+  if (isAwaitingBuktiTf(phone) && isBuktiTfConfirmation(lower)) {
+    clearAwaitingBuktiTf(phone);
+    return { handled: true, reply: BUKTI_TF_REPLY };
   }
 
   // ── Greeting / Menu ──────────────────────────────────────────────────────────
