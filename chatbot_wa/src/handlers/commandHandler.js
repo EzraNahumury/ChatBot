@@ -33,9 +33,8 @@ const BUKTI_TF_EXPIRY_MS = 24 * 60 * 60 * 1000;
 const FINANCE_NUMBER = "+62 882-2596-8185";
 const BUKTI_TF_REPLY =
   "Terima kasih banyak ya kak 🙏\n\n" +
-  "Untuk konfirmasi pembayaran DP desainnya, mohon kirimkan bukti transaksinya ke admin finance kami ya kak:\n\n" +
-  `📱 ${FINANCE_NUMBER}\n\n` +
-  "Nanti admin finance akan konfirmasi dan tim desain kami langsung mulai proses ya 😊";
+  `Mohon dipastikan bukti transaksinya sudah dikirim ke admin finance kami di ${FINANCE_NUMBER} ya kak supaya bisa segera dikonfirmasi.\n\n` +
+  "Setelah dikonfirmasi finance, tim desain kami langsung mulai proses ya 😊";
 
 function setAwaitingBuktiTf(phone) {
   awaitingBuktiTfState.set(phone, Date.now());
