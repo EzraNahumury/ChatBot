@@ -26,9 +26,44 @@ const katalogState = new Map(); // phone -> 'awaiting_katalog'
 const pricelistJerseyState = new Map(); // phone -> 'awaiting_pricelist_jersey'
 
 // State: track users who already received DP rekening, awaiting bukti TF
-// Auto-expires after 24 hours to avoid stale state
+// Auto-expires after 24 hours. Persisted to disk so restart doesn't wipe it.
 const awaitingBuktiTfState = new Map(); // phone -> timestamp
 const BUKTI_TF_EXPIRY_MS = 24 * 60 * 60 * 1000;
+const STATE_DIR = process.env.SESSION_DIR
+  ? path.resolve(process.env.SESSION_DIR)
+  : path.join(__dirname, "../../auth");
+const STATE_FILE = path.join(STATE_DIR, "bukti_tf_state.json");
+
+function ensureStateDir() {
+  try {
+    if (!fs.existsSync(STATE_DIR)) {
+      fs.mkdirSync(STATE_DIR, { recursive: true });
+    }
+  } catch (_) {}
+}
+
+function loadBuktiTfState() {
+  try {
+    if (!fs.existsSync(STATE_FILE)) return;
+    const data = JSON.parse(fs.readFileSync(STATE_FILE, "utf-8"));
+    const now = Date.now();
+    for (const [phone, ts] of Object.entries(data)) {
+      if (typeof ts === "number" && now - ts <= BUKTI_TF_EXPIRY_MS) {
+        awaitingBuktiTfState.set(phone, ts);
+      }
+    }
+  } catch (_) {}
+}
+
+function saveBuktiTfState() {
+  try {
+    ensureStateDir();
+    const obj = Object.fromEntries(awaitingBuktiTfState);
+    fs.writeFileSync(STATE_FILE, JSON.stringify(obj));
+  } catch (_) {}
+}
+
+loadBuktiTfState();
 
 const FINANCE_NUMBER = "+62 882-2596-8185";
 const BUKTI_TF_REPLY =
@@ -53,6 +88,7 @@ const BUKTI_TF_REPLY =
 
 function setAwaitingBuktiTf(phone) {
   awaitingBuktiTfState.set(phone, Date.now());
+  saveBuktiTfState();
 }
 
 function isAwaitingBuktiTf(phone) {
@@ -60,6 +96,7 @@ function isAwaitingBuktiTf(phone) {
   if (!ts) return false;
   if (Date.now() - ts > BUKTI_TF_EXPIRY_MS) {
     awaitingBuktiTfState.delete(phone);
+    saveBuktiTfState();
     return false;
   }
   return true;
@@ -67,6 +104,7 @@ function isAwaitingBuktiTf(phone) {
 
 function clearAwaitingBuktiTf(phone) {
   awaitingBuktiTfState.delete(phone);
+  saveBuktiTfState();
 }
 
 const PRICELIST_JERSEY_CATEGORIES = [
