@@ -25,6 +25,36 @@ const katalogState = new Map(); // phone -> 'awaiting_katalog'
 // State: track users who are awaiting pricelist jersey selection
 const pricelistJerseyState = new Map(); // phone -> 'awaiting_pricelist_jersey'
 
+// State: track users who already received DP rekening, awaiting bukti TF
+// Auto-expires after 24 hours to avoid stale state
+const awaitingBuktiTfState = new Map(); // phone -> timestamp
+const BUKTI_TF_EXPIRY_MS = 24 * 60 * 60 * 1000;
+
+const FINANCE_NUMBER = "+62 882-2596-8185";
+const BUKTI_TF_REPLY =
+  "Terima kasih banyak ya kak 🙏\n\n" +
+  "Untuk konfirmasi pembayaran DP desainnya, mohon kirimkan bukti transaksinya ke admin finance kami ya kak:\n\n" +
+  `📱 ${FINANCE_NUMBER}\n\n` +
+  "Nanti admin finance akan konfirmasi dan tim desain kami langsung mulai proses ya 😊";
+
+function setAwaitingBuktiTf(phone) {
+  awaitingBuktiTfState.set(phone, Date.now());
+}
+
+function isAwaitingBuktiTf(phone) {
+  const ts = awaitingBuktiTfState.get(phone);
+  if (!ts) return false;
+  if (Date.now() - ts > BUKTI_TF_EXPIRY_MS) {
+    awaitingBuktiTfState.delete(phone);
+    return false;
+  }
+  return true;
+}
+
+function clearAwaitingBuktiTf(phone) {
+  awaitingBuktiTfState.delete(phone);
+}
+
 const PRICELIST_JERSEY_CATEGORIES = [
   {
     id: 1,
@@ -170,6 +200,44 @@ function handleCommand(phone, text) {
     return { handled: true, reply: "pong 🏓" };
   }
 
+  // ── Bukti TF: customer mengkonfirmasi transfer setelah rekening dikirim ─────
+  // Hanya aktif jika state awaitingBuktiTf di-set (artinya AI sudah kirim rekening)
+  if (isAwaitingBuktiTf(phone)) {
+    const buktiTfKeywords = [
+      "sudah transfer",
+      "sudah ditransfer",
+      "udah transfer",
+      "telah transfer",
+      "sudah tf",
+      "udah tf",
+      "sudah saya transfer",
+      "udah saya transfer",
+      "saya sudah transfer",
+      "sudah saya tf",
+      "saya sudah tf",
+      "sudah bayar",
+      "udah bayar",
+      "sudah dibayar",
+      "udah dibayar",
+      "ini bukti",
+      "ini buktinya",
+      "buktinya kak",
+      "buktinya min",
+      "bukti tf",
+      "bukti transfer",
+      "bukti transaksi",
+      "transfer sudah",
+      "tf sudah",
+      "sudah berhasil transfer",
+      "udah berhasil transfer",
+      "berhasil transfer",
+    ];
+    if (buktiTfKeywords.some((k) => lower.includes(k))) {
+      clearAwaitingBuktiTf(phone);
+      return { handled: true, reply: BUKTI_TF_REPLY };
+    }
+  }
+
   // ── Greeting / Menu ──────────────────────────────────────────────────────────
   const greetingKeywords = [
     "halo",
@@ -206,6 +274,7 @@ function handleCommand(phone, text) {
     clearHistory(phone);
     clearKatalogState(phone);
     clearPricelistJerseyState(phone);
+    clearAwaitingBuktiTf(phone);
     return {
       handled: true,
       reply: "Okey, percakapan kita mulai dari awal ya 🙂",
@@ -954,4 +1023,8 @@ module.exports = {
   handleCommand,
   clearKatalogState,
   clearPricelistJerseyState,
+  setAwaitingBuktiTf,
+  isAwaitingBuktiTf,
+  clearAwaitingBuktiTf,
+  BUKTI_TF_REPLY,
 };

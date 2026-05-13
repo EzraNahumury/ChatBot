@@ -1,9 +1,14 @@
 const { askAI } = require("../ai/ollama");
+const { setAwaitingBuktiTf } = require("./commandHandler");
 const { logger, maskPhone } = require("../utils/logger");
 const path = require("path");
 const fs = require("fs");
 
 const GAMBAR_DIR = path.join(__dirname, "../../gambar");
+
+// Pattern untuk mendeteksi kalau AI sudah mengirim rekening DP desain.
+// Pakai nomor rekening atau nama CV — keduanya unik dan susah false-positive.
+const REKENING_PATTERN = /(731[-\s]?5250889|ayres\s*sportindo)/i;
 
 const FALLBACK_TIMEOUT =
   "Maaf kak, sistem saya lagi sibuk. Coba tanyakan lagi dalam beberapa saat ya 🙏";
@@ -114,6 +119,16 @@ async function handleAI(phone, text) {
     logger.info({ phone: maskPhone(phone) }, "Sending to AI...");
     const rawReply = await askAI(phone, text);
     logger.info({ phone: maskPhone(phone) }, "AI replied successfully");
+
+    // Jika AI sudah mengirim rekening DP desain, tandai customer sebagai awaiting bukti TF.
+    // Setelah ini, bukti TF (gambar/teks "sudah transfer") akan otomatis diarahkan ke finance.
+    if (REKENING_PATTERN.test(rawReply)) {
+      setAwaitingBuktiTf(phone);
+      logger.info(
+        { phone: maskPhone(phone) },
+        "Rekening DP terdeteksi di reply AI — awaiting bukti TF",
+      );
+    }
 
     // Cek apakah AI bermaksud mengirim gambar yang tersedia di sistem
     const imageIntent = detectImageIntent(rawReply);

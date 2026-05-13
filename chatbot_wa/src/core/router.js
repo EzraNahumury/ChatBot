@@ -1,4 +1,9 @@
-const { handleCommand } = require("../handlers/commandHandler");
+const {
+  handleCommand,
+  isAwaitingBuktiTf,
+  clearAwaitingBuktiTf,
+  BUKTI_TF_REPLY,
+} = require("../handlers/commandHandler");
 const { handleAI } = require("../handlers/aiHandler");
 const { isRateLimited, randomDelay } = require("../utils/throttle");
 const { logger, maskPhone } = require("../utils/logger");
@@ -47,9 +52,23 @@ async function routeMessage(sock, msg) {
       msg.message?.videoMessage?.caption ||
       "";
 
-    // Jika pesan berupa media tanpa caption, balas dengan pesan admin follow-up
+    // Jika pesan berupa media tanpa caption
     if (isMediaMessage && (!text || text.trim() === "")) {
       const phone = jid.replace("@s.whatsapp.net", "");
+
+      // Jika customer sebelumnya sudah diberi rekening DP, anggap media ini sebagai bukti TF
+      // dan arahkan ke admin finance.
+      if (isAwaitingBuktiTf(phone)) {
+        logger.info(
+          { phone: maskPhone(phone) },
+          "Media (bukti TF) received after DP rekening — redirecting to finance",
+        );
+        clearAwaitingBuktiTf(phone);
+        await randomDelay();
+        await sendMessage(sock, jid, BUKTI_TF_REPLY);
+        return;
+      }
+
       logger.info(
         { phone: maskPhone(phone) },
         "Media message received, replying with admin follow-up",
