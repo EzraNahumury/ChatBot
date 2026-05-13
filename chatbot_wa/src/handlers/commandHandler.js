@@ -318,7 +318,28 @@ function handleCommand(phone, text) {
     return { handled: true, reply: BUKTI_TF_REPLY };
   }
 
+  // ── Filled Form Order: customer balas form lengkap dengan isian ──────────────
+  // Detect dengan label form + minimal satu field yang diisi (Nama : nilai)
+  if (
+    lower.includes("form order") &&
+    /\bnama\s*:\s*\S+/i.test(lower) &&
+    /\bpaket\s+yang\s+diambil\s*:\s*\S+/i.test(lower)
+  ) {
+    return {
+      handled: true,
+      reply:
+        "Mantap kak, form ordernya sudah kami catat 📝\n\n" +
+        "Selanjutnya admin kami akan chat langsung untuk:\n" +
+        "• Konfirmasi pembayaran DP desain dengan tim finance\n" +
+        "• Mulai proses desain sesuai detail orderan\n" +
+        "• Hitung total + DP produksi setelah desain fix\n\n" +
+        "Terima kasih banyak ya kak, mohon ditunggu sebentar 🙏",
+    };
+  }
+
   // ── Greeting / Menu ──────────────────────────────────────────────────────────
+  // "menu" sengaja TIDAK di-include sebagai substring (akan false-positive
+  // pada kata "menunggu", "menumpuk", dll.). Exact match "menu" tetap ditangani di bawah.
   const greetingKeywords = [
     "halo",
     "hai",
@@ -326,7 +347,6 @@ function handleCommand(phone, text) {
     "hello",
     "hi ",
     "hi,",
-    "menu",
     "selamat pagi",
     "selamat siang",
     "selamat sore",
